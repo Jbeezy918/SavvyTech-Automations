@@ -3,185 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SavvyTech Automations - Smart Business Solutions</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Spark Driver Tracker - Track Every Trip. Maximize Every Dollar.</title>
+    <meta name="description" content="The smart delivery tracker that helps drivers earn more. Free to start, upgrade when you're ready.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 18px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .trust-badge {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Problem/Solution */
+        .problem-solution {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .problem-solution h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #004C91;
+        }
+
+        .problem-solution p {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #666;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin: 20px 0 15px;
+            color: #004C91;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #004C91;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .pricing-card.featured {
+            border-color: #667eea;
+            border-width: 3px;
+            position: relative;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #004C91;
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .price span {
+            font-size: 1.2rem;
+            color: #999;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .pricing-features li:before {
+            content: "✓ ";
+            color: #28A745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .select-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .select-button:hover {
+            opacity: 0.9;
+        }
+
+        .select-button.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        /* Social Proof */
+        .testimonials {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .testimonials h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #004C91;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .testimonial p {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            color: #004C91;
+        }
+
+        /* Footer */
+        footer {
+            background: #004C91;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <span class="logo-text">SavvyTech</span>
-                <span class="logo-accent">Automations</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="#services" class="nav-link">Services</a></li>
-                <li><a href="#about" class="nav-link">About</a></li>
-                <li><a href="#contact" class="nav-link">Contact</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Track Every Trip.<br>Maximize Every Dollar.</h1>
+            <p>The smart delivery tracker that actually helps you make more money</p>
+            <a href="https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app" class="cta-button">Start Free - No Credit Card</a>
+            <div class="trust-badge">Join 500+ smart drivers already earning more ⚡</div>
         </div>
-    </nav>
+    </section>
 
-    <section id="home" class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    Automate Your Business
-                    <span class="gradient-text">Intelligently</span>
-                </h1>
-                <p class="hero-description">
-                    Transform your workflow with cutting-edge automation solutions.
-                    Save time, reduce costs, and scale your business with smart technology.
-                </p>
-                <div class="hero-buttons">
-                    <button class="btn btn-primary">Get Started</button>
-                    <button class="btn btn-secondary">Learn More</button>
+    <!-- Problem/Solution -->
+    <section class="problem-solution">
+        <div class="container">
+            <h2>Stop Flying Blind on Your Delivery Game</h2>
+            <p>Tracking trips on napkins? Guessing which hours pay best? Missing deductions come tax time?</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Log Trips in 5 Seconds</h3>
+                    <p>No more messy notebooks. Track earnings, distance, and zones instantly.</p>
                 </div>
-            </div>
-            <div class="hero-image">
-                <div class="tech-animation">
-                    <div class="floating-element element-1"></div>
-                    <div class="floating-element element-2"></div>
-                    <div class="floating-element element-3"></div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>See What's Actually Profitable</h3>
+                    <p>Know your hourly rate, best zones, and peak times with real data.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Hit Income Goals Consistently</h3>
+                    <p>Set targets, track progress, and get there faster with smart insights.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧾</div>
+                    <h3>Never Miss a Deduction</h3>
+                    <p>Export tax-ready reports. Every mile, every expense, perfectly logged.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>Find Your Goldmine Zones</h3>
+                    <p>Heat maps show exactly where the money is. Stop wasting gas.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Works Anywhere</h3>
+                    <p>Mobile-friendly. Log trips from your phone while you drive.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="services" class="services">
+    <!-- Pricing -->
+    <section class="pricing">
         <div class="container">
-            <h2 class="section-title">Our Services</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">🤖</div>
-                    <h3>AI Integration</h3>
-                    <p>Implement intelligent automation using advanced AI and machine learning technologies.</p>
+            <h2>Simple Pricing. Serious Results.</h2>
+
+            <div class="pricing-grid">
+                <!-- Free Tier -->
+                <div class="pricing-card">
+                    <h3>Free Starter</h3>
+                    <div class="price">$0<span>/month</span></div>
+                    <p>Perfect for testing the waters</p>
+                    <ul class="pricing-features">
+                        <li>Track 50 trips/month</li>
+                        <li>Basic earnings dashboard</li>
+                        <li>Mobile access</li>
+                        <li>Email support</li>
+                    </ul>
+                    <button class="select-button secondary" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Get Started Free</button>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">⚙️</div>
-                    <h3>Process Optimization</h3>
-                    <p>Streamline your workflows with custom automation solutions tailored to your business needs.</p>
+
+                <!-- Pro Tier -->
+                <div class="pricing-card featured">
+                    <span class="badge">⭐ MOST POPULAR</span>
+                    <h3>Pro Driver</h3>
+                    <div class="price">$12<span>/month</span></div>
+                    <p>The complete driver toolkit</p>
+                    <ul class="pricing-features">
+                        <li>Unlimited trip tracking</li>
+                        <li>Advanced zone analytics</li>
+                        <li>Goal setting & achievements</li>
+                        <li>Expense tracking & deductions</li>
+                        <li>Export tax reports</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="select-button" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Upgrade to Pro</button>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">📊</div>
-                    <h3>Data Analytics</h3>
-                    <p>Transform raw data into actionable insights with automated reporting and analytics.</p>
+
+                <!-- Fleet Tier -->
+                <div class="pricing-card">
+                    <h3>Fleet Master</h3>
+                    <div class="price">$39<span>/month</span></div>
+                    <p>For delivery teams & fleet owners</p>
+                    <ul class="pricing-features">
+                        <li>Everything in Pro, plus:</li>
+                        <li>Multi-driver management</li>
+                        <li>Team performance analytics</li>
+                        <li>Custom reporting dashboard</li>
+                        <li>White-label option</li>
+                        <li>Phone support</li>
+                    </ul>
+                    <button class="select-button" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Contact Sales</button>
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">🔧</div>
-                    <h3>Custom Solutions</h3>
-                    <p>Develop bespoke automation tools designed specifically for your unique requirements.</p>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px; color: #666;">💳 All plans: No contracts, cancel anytime</p>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <h2>Real Drivers. Real Results.</h2>
+
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <p>"Spark helped me find my $30/hour sweet spot. I was driving the wrong hours!"</p>
+                    <div class="testimonial-author">- Marcus D., Uber Eats Driver</div>
+                </div>
+
+                <div class="testimonial">
+                    <p>"Finally hit my $1000/week goal thanks to the zone insights. Game changer."</p>
+                    <div class="testimonial-author">- Sarah K., DoorDash Driver</div>
+                </div>
+
+                <div class="testimonial">
+                    <p>"Tax season was a breeze. One click export, done. Worth it for that alone."</p>
+                    <div class="testimonial-author">- Mike T., Spark Driver</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="about" class="about">
+    <!-- Footer -->
+    <footer>
         <div class="container">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2 class="section-title">Why Choose SavvyTech?</h2>
-                    <p class="about-description">
-                        With years of experience in automation and AI, we deliver solutions that not only meet
-                        your current needs but scale with your business growth. Our team combines technical
-                        expertise with business acumen to create truly impactful automations.
-                    </p>
-                    <div class="stats">
-                        <div class="stat">
-                            <span class="stat-number">500+</span>
-                            <span class="stat-label">Projects Completed</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">98%</span>
-                            <span class="stat-label">Client Satisfaction</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">50%</span>
-                            <span class="stat-label">Average Time Saved</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="about-image">
-                    <div class="tech-visual">
-                        <div class="tech-circle circle-1"></div>
-                        <div class="tech-circle circle-2"></div>
-                        <div class="tech-circle circle-3"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">Ready to Automate?</h2>
-            <p class="contact-subtitle">Let's discuss how we can transform your business processes</p>
-            <div class="contact-content">
-                <form class="contact-form">
-                    <div class="form-group">
-                        <input type="text" id="name" name="name" placeholder="Your Name" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" id="email" name="email" placeholder="Your Email" required>
-                    </div>
-                    <div class="form-group">
-                        <select id="service" name="service" required>
-                            <option value="">Select Service</option>
-                            <option value="ai-integration">AI Integration</option>
-                            <option value="process-optimization">Process Optimization</option>
-                            <option value="data-analytics">Data Analytics</option>
-                            <option value="custom-solutions">Custom Solutions</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <textarea id="message" name="message" placeholder="Tell us about your project" rows="5" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Send Message</button>
-                </form>
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <h4>Email Us</h4>
-                        <p>hello@savvytechautomations.com</p>
-                    </div>
-                    <div class="contact-item">
-                        <h4>Call Us</h4>
-                        <p>+1 (555) 123-4567</p>
-                    </div>
-                    <div class="contact-item">
-                        <h4>Follow Us</h4>
-                        <div class="social-links">
-                            <a href="#" class="social-link">LinkedIn</a>
-                            <a href="#" class="social-link">Twitter</a>
-                            <a href="#" class="social-link">GitHub</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo-text">SavvyTech</span>
-                    <span class="logo-accent">Automations</span>
-                </div>
-                <p class="footer-text">
-                    &copy; 2024 SavvyTech Automations. All rights reserved.
-                </p>
-            </div>
+            <p>&copy; 2025 SavvyTech Automations | Spark Driver Tracker</p>
+            <p>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="mailto:support@savvytechautomations.com">Contact</a>
+            </p>
         </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>
