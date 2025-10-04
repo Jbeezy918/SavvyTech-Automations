@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark Driver Tracker - Track Every Trip. Maximize Every Dollar.</title>
-    <meta name="description" content="The smart delivery tracker that helps drivers earn more. Free to start, upgrade when you're ready.">
+    <title>SavvyTech Automations - AI-Powered Business & Home Automation</title>
+    <meta name="description" content="Save time and money with AI agents, custom apps, automation, and expert consultation. From customer service bots to smart home systems - we automate it all.">
     <style>
         * {
             margin: 0;
@@ -12,10 +12,23 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --text: #2d3748;
+            --text-light: #718096;
+            --bg: #ffffff;
+            --bg-light: #f7fafc;
+            --success: #48bb78;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: var(--text);
+            overflow-x: hidden;
         }
 
         .container {
@@ -24,429 +37,863 @@
             padding: 0 20px;
         }
 
+        /* Navigation */
+        nav {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .cta-nav {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+
+        .cta-nav:hover {
+            transform: translateY(-2px);
+        }
+
         /* Hero Section */
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 100px 20px;
+            padding: 120px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
         .hero h1 {
             font-size: 3.5rem;
-            margin-bottom: 20px;
-            font-weight: 800;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+            line-height: 1.2;
         }
 
-        .hero p {
+        .hero-tagline {
             font-size: 1.5rem;
-            margin-bottom: 40px;
+            margin-bottom: 3rem;
             opacity: 0.95;
+            font-weight: 300;
         }
 
-        .cta-button {
-            display: inline-block;
-            background: white;
-            color: #667eea;
-            padding: 18px 40px;
-            text-decoration: none;
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
             border-radius: 50px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .cta-button:hover {
+        .btn-primary:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
 
-        .trust-badge {
-            margin-top: 30px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            backdrop-filter: blur(10px);
         }
 
-        /* Problem/Solution */
-        .problem-solution {
-            padding: 80px 20px;
-            background: #f8f9fa;
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
         }
 
-        .problem-solution h2 {
+        /* Services Section */
+        .services {
+            padding: 100px 20px;
+            background: var(--bg-light);
+        }
+
+        .section-header {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: #004C91;
+            margin-bottom: 4rem;
         }
 
-        .problem-solution p {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            color: #666;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin: 20px 0 15px;
-            color: #004C91;
-        }
-
-        .feature-icon {
+        .section-title {
             font-size: 3rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-weight: 800;
         }
 
-        /* Pricing */
-        .pricing {
-            padding: 80px 20px;
-            background: white;
-        }
-
-        .pricing h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 50px;
-            color: #004C91;
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            max-width: 1000px;
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            max-width: 700px;
             margin: 0 auto;
         }
 
-        .pricing-card {
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .service-card {
             background: white;
-            border: 2px solid #e0e0e0;
+            padding: 2.5rem;
             border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
 
-        .pricing-card:hover {
+        .service-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+            border-color: var(--primary);
         }
 
-        .pricing-card.featured {
-            border-color: #667eea;
-            border-width: 3px;
+        .service-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .service-card p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .service-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .service-features li {
+            padding: 0.5rem 0;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .service-features li::before {
+            content: "✓ ";
+            color: var(--success);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* Products Showcase */
+        .products {
+            padding: 100px 20px;
+            background: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .product-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .product-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-status {
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .product-body {
+            padding: 2rem;
+        }
+
+        .product-description {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .product-link {
+            display: inline-block;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+
+        .product-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 20px;
+            background: var(--bg-light);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            text-align: center;
             position: relative;
         }
 
-        .badge {
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .step p {
+            color: var(--text-light);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
+            text-align: center;
         }
 
-        .pricing-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: #004C91;
-        }
-
-        .price {
+        .cta-section h2 {
             font-size: 3rem;
-            font-weight: bold;
-            color: #667eea;
-            margin: 20px 0;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
         }
 
-        .price span {
-            font-size: 1.2rem;
-            color: #999;
+        .cta-section p {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
         }
 
-        .pricing-features {
-            list-style: none;
-            margin: 30px 0;
-            text-align: left;
+        /* Contact Form */
+        .contact {
+            padding: 100px 20px;
+            background: white;
         }
 
-        .pricing-features li {
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
+        .contact-form {
+            max-width: 600px;
+            margin: 3rem auto 0;
+            background: var(--bg-light);
+            padding: 3rem;
+            border-radius: 20px;
         }
 
-        .pricing-features li:before {
-            content: "✓ ";
-            color: #28A745;
-            font-weight: bold;
-            margin-right: 10px;
+        .form-group {
+            margin-bottom: 1.5rem;
         }
 
-        .select-button {
+        .form-group label {
             display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
+            padding: 1rem 2rem;
             border: none;
             border-radius: 50px;
-            font-weight: bold;
             font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.3s ease;
+            transition: transform 0.3s;
         }
 
-        .select-button:hover {
-            opacity: 0.9;
-        }
-
-        .select-button.secondary {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        /* Social Proof */
-        .testimonials {
-            padding: 80px 20px;
-            background: #f8f9fa;
-        }
-
-        .testimonials h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 50px;
-            color: #004C91;
-        }
-
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .testimonial {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .testimonial p {
-            font-style: italic;
-            margin-bottom: 20px;
-            color: #555;
-        }
-
-        .testimonial-author {
-            font-weight: bold;
-            color: #004C91;
+        .submit-btn:hover {
+            transform: translateY(-2px);
         }
 
         /* Footer */
         footer {
-            background: #004C91;
+            background: #2d3748;
             color: white;
+            padding: 3rem 2rem 2rem;
             text-align: center;
-            padding: 40px 20px;
         }
 
-        footer a {
-            color: white;
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #cbd5e0;
             text-decoration: none;
-            margin: 0 15px;
+            transition: color 0.3s;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        .footer-links a:hover {
+            color: white;
         }
 
-        /* Mobile */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
             .hero h1 {
                 font-size: 2.5rem;
             }
 
-            .hero p {
+            .hero-tagline {
                 font-size: 1.2rem;
             }
 
-            .pricing-grid {
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .services-grid,
+            .products-grid,
+            .steps {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
         }
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <span>SavvyTech</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#products">Products</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <a href="#contact" class="cta-nav">Get Started</a>
+        </div>
+    </nav>
+
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <h1>Track Every Trip.<br>Maximize Every Dollar.</h1>
-            <p>The smart delivery tracker that actually helps you make more money</p>
-            <a href="https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app" class="cta-button">Start Free - No Credit Card</a>
-            <div class="trust-badge">Join 500+ smart drivers already earning more ⚡</div>
+        <div class="hero-content fade-in">
+            <h1>Save Time. Save Money.<br>Automate Everything.</h1>
+            <p class="hero-tagline">Let us handle the little things, so you can focus on what matters most.</p>
+            <div class="hero-buttons">
+                <a href="#services" class="btn btn-primary">Explore Services</a>
+                <a href="#contact" class="btn btn-secondary">Book Consultation</a>
+            </div>
         </div>
     </section>
 
-    <!-- Problem/Solution -->
-    <section class="problem-solution">
+    <!-- Services Section -->
+    <section id="services" class="services">
         <div class="container">
-            <h2>Stop Flying Blind on Your Delivery Game</h2>
-            <p>Tracking trips on napkins? Guessing which hours pay best? Missing deductions come tax time?</p>
+            <div class="section-header">
+                <h2 class="section-title">What We Automate</h2>
+                <p class="section-subtitle">From AI-powered customer service to smart home systems - if it can be automated, we can build it.</p>
+            </div>
 
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Log Trips in 5 Seconds</h3>
-                    <p>No more messy notebooks. Track earnings, distance, and zones instantly.</p>
+            <div class="services-grid">
+                <!-- AI Agents -->
+                <div class="service-card">
+                    <div class="service-icon">🤖</div>
+                    <h3>AI Agent Solutions</h3>
+                    <p>Intelligent automation that works 24/7 for your business.</p>
+                    <ul class="service-features">
+                        <li>Customer Service Chatbots</li>
+                        <li>Voice AI Assistants</li>
+                        <li>Automated Email Responses</li>
+                        <li>Lead Qualification Agents</li>
+                        <li>Data Processing Automation</li>
+                        <li>Custom AI Workflows</li>
+                    </ul>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>See What's Actually Profitable</h3>
-                    <p>Know your hourly rate, best zones, and peak times with real data.</p>
+                <!-- Custom Applications -->
+                <div class="service-card">
+                    <div class="service-icon">📱</div>
+                    <h3>Custom Applications</h3>
+                    <p>Bespoke software solutions tailored to your exact needs.</p>
+                    <ul class="service-features">
+                        <li>Web Applications</li>
+                        <li>Mobile Apps</li>
+                        <li>Desktop Software</li>
+                        <li>Database Solutions</li>
+                        <li>API Integrations</li>
+                        <li>SaaS Platforms</li>
+                    </ul>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3>Hit Income Goals Consistently</h3>
-                    <p>Set targets, track progress, and get there faster with smart insights.</p>
+                <!-- Business Automation -->
+                <div class="service-card">
+                    <div class="service-icon">⚙️</div>
+                    <h3>Business Automation</h3>
+                    <p>Streamline your operations and eliminate repetitive tasks.</p>
+                    <ul class="service-features">
+                        <li>Workflow Automation</li>
+                        <li>Document Processing</li>
+                        <li>Inventory Management</li>
+                        <li>Appointment Scheduling</li>
+                        <li>Report Generation</li>
+                        <li>CRM Integration</li>
+                    </ul>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">🧾</div>
-                    <h3>Never Miss a Deduction</h3>
-                    <p>Export tax-ready reports. Every mile, every expense, perfectly logged.</p>
+                <!-- Websites & Digital Presence -->
+                <div class="service-card">
+                    <div class="service-icon">🌐</div>
+                    <h3>Websites & Digital</h3>
+                    <p>Professional websites that drive results and grow your business.</p>
+                    <ul class="service-features">
+                        <li>Business Websites</li>
+                        <li>E-commerce Stores</li>
+                        <li>Landing Pages</li>
+                        <li>SEO Optimization</li>
+                        <li>Payment Integration</li>
+                        <li>Analytics Setup</li>
+                    </ul>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">🗺️</div>
-                    <h3>Find Your Goldmine Zones</h3>
-                    <p>Heat maps show exactly where the money is. Stop wasting gas.</p>
+                <!-- Home Automation -->
+                <div class="service-card">
+                    <div class="service-icon">🏠</div>
+                    <h3>Smart Home Systems</h3>
+                    <p>Transform your home into an intelligent, efficient space.</p>
+                    <ul class="service-features">
+                        <li>Smart Lighting Control</li>
+                        <li>Climate Automation</li>
+                        <li>Security Systems</li>
+                        <li>Voice Control Integration</li>
+                        <li>Energy Management</li>
+                        <li>Custom Scenes</li>
+                    </ul>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Works Anywhere</h3>
-                    <p>Mobile-friendly. Log trips from your phone while you drive.</p>
+                <!-- Consultation -->
+                <div class="service-card">
+                    <div class="service-icon">💡</div>
+                    <h3>Expert Consultation</h3>
+                    <p>Strategic guidance to identify and implement the right automation.</p>
+                    <ul class="service-features">
+                        <li>Process Analysis</li>
+                        <li>Technology Strategy</li>
+                        <li>ROI Assessment</li>
+                        <li>Implementation Planning</li>
+                        <li>Training & Support</li>
+                        <li>Ongoing Optimization</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing -->
-    <section class="pricing">
+    <!-- Products Showcase -->
+    <section id="products" class="products">
         <div class="container">
-            <h2>Simple Pricing. Serious Results.</h2>
-
-            <div class="pricing-grid">
-                <!-- Free Tier -->
-                <div class="pricing-card">
-                    <h3>Free Starter</h3>
-                    <div class="price">$0<span>/month</span></div>
-                    <p>Perfect for testing the waters</p>
-                    <ul class="pricing-features">
-                        <li>Track 50 trips/month</li>
-                        <li>Basic earnings dashboard</li>
-                        <li>Mobile access</li>
-                        <li>Email support</li>
-                    </ul>
-                    <button class="select-button secondary" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Get Started Free</button>
-                </div>
-
-                <!-- Pro Tier -->
-                <div class="pricing-card featured">
-                    <span class="badge">⭐ MOST POPULAR</span>
-                    <h3>Pro Driver</h3>
-                    <div class="price">$12<span>/month</span></div>
-                    <p>The complete driver toolkit</p>
-                    <ul class="pricing-features">
-                        <li>Unlimited trip tracking</li>
-                        <li>Advanced zone analytics</li>
-                        <li>Goal setting & achievements</li>
-                        <li>Expense tracking & deductions</li>
-                        <li>Export tax reports</li>
-                        <li>Priority support</li>
-                    </ul>
-                    <button class="select-button" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Upgrade to Pro</button>
-                </div>
-
-                <!-- Fleet Tier -->
-                <div class="pricing-card">
-                    <h3>Fleet Master</h3>
-                    <div class="price">$39<span>/month</span></div>
-                    <p>For delivery teams & fleet owners</p>
-                    <ul class="pricing-features">
-                        <li>Everything in Pro, plus:</li>
-                        <li>Multi-driver management</li>
-                        <li>Team performance analytics</li>
-                        <li>Custom reporting dashboard</li>
-                        <li>White-label option</li>
-                        <li>Phone support</li>
-                    </ul>
-                    <button class="select-button" onclick="window.location.href='https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app'">Contact Sales</button>
-                </div>
+            <div class="section-header">
+                <h2 class="section-title">Our Products</h2>
+                <p class="section-subtitle">Ready-to-use solutions we've built to solve real problems.</p>
             </div>
 
-            <p style="text-align: center; margin-top: 40px; color: #666;">💳 All plans: No contracts, cancel anytime</p>
+            <div class="products-grid">
+                <!-- Spark Tracker -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <h3>Spark Driver Tracker</h3>
+                        <span class="product-status">✨ Live</span>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-description">
+                            Track every delivery trip, maximize earnings, and simplify tax season. Built for DoorDash, Uber Eats, and Spark drivers.
+                        </p>
+                        <a href="https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app" class="product-link">Launch App →</a>
+                    </div>
+                </div>
+
+                <!-- Relay -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <h3>AI Relay</h3>
+                        <span class="product-status">🚀 Coming Soon</span>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-description">
+                            Multi-agent orchestration system that coordinates AI assistants to handle complex workflows automatically.
+                        </p>
+                        <a href="#contact" class="product-link">Get Notified →</a>
+                    </div>
+                </div>
+
+                <!-- Bolt -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <h3>Bolt</h3>
+                        <span class="product-status">🚀 Coming Soon</span>
+                    </div>
+                    <div class="product-body">
+                        <p class="product-description">
+                            Lightning-fast automation builder that turns your manual processes into automated workflows in minutes.
+                        </p>
+                        <a href="#contact" class="product-link">Get Notified →</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="testimonials">
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
         <div class="container">
-            <h2>Real Drivers. Real Results.</h2>
+            <div class="section-header">
+                <h2 class="section-title">How We Work</h2>
+                <p class="section-subtitle">Simple, transparent process from idea to implementation.</p>
+            </div>
 
-            <div class="testimonial-grid">
-                <div class="testimonial">
-                    <p>"Spark helped me find my $30/hour sweet spot. I was driving the wrong hours!"</p>
-                    <div class="testimonial-author">- Marcus D., Uber Eats Driver</div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Discovery Call</h3>
+                    <p>We listen to your challenges and identify automation opportunities.</p>
                 </div>
 
-                <div class="testimonial">
-                    <p>"Finally hit my $1000/week goal thanks to the zone insights. Game changer."</p>
-                    <div class="testimonial-author">- Sarah K., DoorDash Driver</div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Custom Proposal</h3>
+                    <p>Receive a detailed plan with timeline, cost, and expected ROI.</p>
                 </div>
 
-                <div class="testimonial">
-                    <p>"Tax season was a breeze. One click export, done. Worth it for that alone."</p>
-                    <div class="testimonial-author">- Mike T., Spark Driver</div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Build & Test</h3>
+                    <p>Our AI agents create your solution with regular check-ins.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Launch & Support</h3>
+                    <p>Go live with confidence, backed by ongoing support and training.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Automate?</h2>
+            <p>Let's talk about how we can save you time and money.</p>
+            <a href="#contact" class="btn btn-primary">Schedule Free Consultation</a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">Tell us about your project and we'll get back to you within 24 hours.</p>
+            </div>
+
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">Your Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="John Smith">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required placeholder="john@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
+                </div>
+
+                <div class="form-group">
+                    <label for="service">Interested In *</label>
+                    <select id="service" name="service" required>
+                        <option value="">Select a service</option>
+                        <option value="ai-agents">AI Agent Solutions</option>
+                        <option value="custom-apps">Custom Applications</option>
+                        <option value="business-automation">Business Automation</option>
+                        <option value="websites">Websites & Digital</option>
+                        <option value="smart-home">Smart Home Systems</option>
+                        <option value="consultation">Expert Consultation</option>
+                        <option value="other">Other / Not Sure</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Project Details *</label>
+                    <textarea id="message" name="message" required placeholder="Tell us about what you're looking to automate..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
         </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="container">
-            <p>&copy; 2025 SavvyTech Automations | Spark Driver Tracker</p>
-            <p>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="mailto:support@savvytechautomations.com">Contact</a>
-            </p>
+        <div class="footer-content">
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <span>SavvyTech Automations</span>
+            </div>
+            <div class="footer-links">
+                <a href="#services">Services</a>
+                <a href="#products">Products</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#contact">Contact</a>
+                <a href="mailto:hello@savvytechautomations.com">hello@savvytechautomations.com</a>
+            </div>
+            <p style="margin-top: 2rem; color: #cbd5e0;">&copy; 2025 SavvyTech Automations. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Form submission
+        document.querySelector('.contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We\'ll get back to you within 24 hours.');
+            this.reset();
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.service-card, .product-card, .step').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
