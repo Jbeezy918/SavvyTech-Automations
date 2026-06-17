@@ -1,840 +1,718 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SavvyTech Automations — Build it once. Automate forever.</title>
-  <meta name="description" content="Automation, AI agents, custom apps, and data dashboards for small biz to enterprise. Start with a $499 Jumpstart or book a free consult." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fraunces:wght@700;900&display=swap" rel="stylesheet">
-  <meta property="og:title" content="SavvyTech Automations" />
-  <meta property="og:description" content="We build automations, AI support agents, internal apps, and revenue-boosting data workflows." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://savvytechautomations.com" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOPsync by SavvyTech — Find Your Process Gaps Before Your Auditor Does</title>
+
+  <!-- ── GOOGLE ANALYTICS 4 ─────────────────────────────────────────────────
+       SETUP: Go to analytics.google.com → Admin → Create Property → Get Measurement ID
+       Replace G-XXXXXXXXXX below with your real ID (looks like G-AB12CD34EF)
+  ──────────────────────────────────────────────────────────────────────────── -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+
+    // Track CTA button clicks as conversion events
+    function trackCTA(label) {
+      gtag('event', 'cta_click', { event_category: 'conversion', event_label: label });
+    }
+    function trackFormStart() {
+      gtag('event', 'form_start', { event_category: 'lead', event_label: 'lead_capture_form' });
+    }
+    function trackFormSubmit(tier) {
+      gtag('event', 'generate_lead', { event_category: 'lead', event_label: tier, value: 1 });
     }
 
+    // ── FORM SUBMISSION (Formspree AJAX) ──────────────────────────────────────
+    // SETUP: Go to formspree.io → + New Form → copy your endpoint ID
+    // Replace FORMSPREE_ID_HERE below with your real ID (looks like xpwzabcd)
+    async function submitLeadForm(e) {
+      e.preventDefault();
+      const form = e.target;
+      const tier = document.getElementById('tier-select').value;
+      try {
+        const resp = await fetch('https://formspree.io/f/FORMSPREE_ID_HERE', {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (resp.ok) {
+          trackFormSubmit(tier);
+          document.querySelector('.form-success').style.display = 'block';
+          form.style.display = 'none';
+        } else {
+          alert('Something went wrong. Please email savvytechconsult@gmail.com directly.');
+        }
+      } catch(err) {
+        alert('Network error. Please email savvytechconsult@gmail.com directly.');
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      /* 2025 Trend: Earth tones + vibrant accents */
-      --mocha: #704F3B;
-      --tan: #D4A574;
-      --sage: #88A882;
-      --terracotta: #E07856;
-      --deep-purple: #5C4B99;
-      --warm-white: #FFF8F0;
-      --charcoal: #2D2D2A;
-      --cream: #F5EBD8;
+      --navy:  #0d1b2a;
+      --navy2: #162436;
+      --gold:  #f5a623;
+      --blue:  #1a73e8;
+      --white: #ffffff;
+      --light: #f7f9fc;
+      --gray:  #64748b;
+      --text:  #1e293b;
+      --border:#e2e8f0;
+      --green: #16a34a;
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--warm-white);
-      color: var(--charcoal);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--white);
       line-height: 1.6;
     }
 
-    /* Expressive typography - High contrast serif + sans-serif */
-    h1, h2, h3 {
-      font-family: 'Fraunces', serif;
-      font-weight: 900;
-      line-height: 1.1;
-    }
-
-    /* Header - Clean, sticky with earth tones */
-    header {
-      background: rgba(255, 248, 240, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 2px solid var(--mocha);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      padding: 1.5rem 2rem;
-    }
-
-    .header-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .logo-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, var(--terracotta) 0%, var(--deep-purple) 100%);
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      transform: rotate(-3deg); /* Anti-design: intentional tilt */
-    }
-
-    .logo-text {
-      font-family: 'Fraunces', serif;
-      font-weight: 900;
-      font-size: 1.3rem;
-      color: var(--mocha);
-    }
-
-    .logo-tagline {
-      font-size: 0.75rem;
-      color: var(--charcoal);
-      opacity: 0.7;
-      margin-top: -4px;
-    }
-
+    /* ── NAV ── */
     nav {
-      display: flex;
-      gap: 2.5rem;
-      align-items: center;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: var(--charcoal);
-      font-weight: 600;
-      font-size: 0.95rem;
-      transition: color 0.3s;
-      position: relative;
-    }
-
-    nav a:hover {
-      color: var(--terracotta);
-    }
-
-    nav a::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: var(--terracotta);
-      transition: width 0.3s;
-    }
-
-    nav a:hover::after {
-      width: 100%;
-    }
-
-    .cta-buttons {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .btn {
-      padding: 0.75rem 1.75rem;
-      border-radius: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all 0.3s;
-      font-size: 0.9rem;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--terracotta) 0%, var(--deep-purple) 100%);
-      color: white;
-      box-shadow: 0 4px 15px rgba(224, 120, 86, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(224, 120, 86, 0.4);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      border: 2px solid var(--mocha);
-      color: var(--mocha);
-    }
-
-    .btn-secondary:hover {
-      background: var(--mocha);
-      color: var(--warm-white);
-    }
-
-    /* Hero - Asymmetric layout (anti-design trend) */
-    .hero {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 4rem 2rem 6rem;
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr; /* Intentionally asymmetric */
-      gap: 4rem;
-      align-items: center;
-    }
-
-    .hero-content h1 {
-      font-size: 4rem;
-      color: var(--mocha);
-      margin-bottom: 1.5rem;
-      transform: rotate(-1deg); /* Subtle tilt for anti-design */
-    }
-
-    .hero-content h1 .highlight {
-      background: linear-gradient(120deg, var(--terracotta) 0%, var(--deep-purple) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: inline-block;
-      transform: rotate(1deg); /* Counter-rotate for emphasis */
-    }
-
-    .hero-content p {
-      font-size: 1.25rem;
-      color: var(--charcoal);
-      margin-bottom: 2rem;
-      line-height: 1.8;
-      opacity: 0.9;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.5rem;
-    }
-
-    .hero-buttons .btn {
-      padding: 1rem 2.5rem;
-      font-size: 1.1rem;
-    }
-
-    .roi-note {
-      font-size: 0.85rem;
-      color: var(--mocha);
-      font-style: italic;
-    }
-
-    /* Hero visual - photo cutout style */
-    .hero-visual {
-      position: relative;
-    }
-
-    .feature-card {
-      background: white;
-      border-radius: 20px;
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(112, 79, 59, 0.1);
-      border: 3px solid var(--cream);
-      margin-bottom: 1rem;
-      transform: rotate(0.5deg); /* Subtle rotation */
-      transition: transform 0.3s;
-    }
-
-    .feature-card:nth-child(even) {
-      transform: rotate(-0.5deg); /* Alternate rotation */
-    }
-
-    .feature-card:hover {
-      transform: rotate(0deg) scale(1.02);
-    }
-
-    .feature-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, var(--sage) 0%, var(--tan) 100%);
-      border-radius: 12px;
+      background: var(--navy);
+      padding: 18px 48px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      float: left;
-      margin-right: 1rem;
-    }
-
-    .feature-title {
-      font-family: 'Fraunces', serif;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--mocha);
-      margin-bottom: 0.25rem;
-    }
-
-    .feature-desc {
-      font-size: 0.9rem;
-      color: var(--charcoal);
-      opacity: 0.8;
-    }
-
-    /* Services - Bold, layered cards */
-    .services {
-      background: var(--cream);
-      padding: 6rem 2rem;
-    }
-
-    .section-header {
-      max-width: 800px;
-      margin: 0 auto 4rem;
-      text-align: center;
-    }
-
-    .section-header h2 {
-      font-size: 3.5rem;
-      color: var(--mocha);
-      margin-bottom: 1rem;
-    }
-
-    .section-header p {
-      font-size: 1.25rem;
-      color: var(--charcoal);
-      opacity: 0.8;
-    }
-
-    .services-grid {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-    }
-
-    .service-card {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 20px;
-      border: 3px solid var(--mocha);
-      box-shadow: 8px 8px 0 var(--tan); /* Layered shadow - bold 2025 trend */
-      transition: all 0.3s;
-    }
-
-    .service-card:hover {
-      transform: translate(-4px, -4px);
-      box-shadow: 12px 12px 0 var(--tan);
-    }
-
-    .service-card .emoji {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-    }
-
-    .service-card h3 {
-      font-size: 1.5rem;
-      color: var(--mocha);
-      margin-bottom: 1rem;
-    }
-
-    .service-card p {
-      color: var(--charcoal);
-      opacity: 0.8;
-      margin-bottom: 1.5rem;
-    }
-
-    .service-card a {
-      color: var(--terracotta);
-      font-weight: 700;
-      text-decoration: none;
-      font-size: 0.95rem;
-    }
-
-    .service-card a:hover {
-      text-decoration: underline;
-    }
-
-    /* Pricing - Warm, accessible */
-    .pricing {
-      padding: 6rem 2rem;
-      background: var(--warm-white);
-    }
-
-    .pricing-grid {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-    }
-
-    .pricing-card {
-      background: white;
-      border: 3px solid var(--cream);
-      border-radius: 20px;
-      padding: 2.5rem;
-      transition: all 0.3s;
-    }
-
-    .pricing-card.featured {
-      border-color: var(--terracotta);
-      background: linear-gradient(180deg, var(--warm-white) 0%, white 20%);
-      transform: scale(1.05);
-      box-shadow: 0 15px 40px rgba(224, 120, 86, 0.2);
-    }
-
-    .pricing-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .pricing-card h3 {
-      font-size: 1.5rem;
-      color: var(--mocha);
-      margin-bottom: 1rem;
-    }
-
-    .price {
-      font-family: 'Fraunces', serif;
-      font-size: 3rem;
-      font-weight: 900;
-      color: var(--terracotta);
-      margin: 1rem 0;
-    }
-
-    .price span {
-      font-size: 1.2rem;
-      color: var(--charcoal);
-      opacity: 0.6;
-      font-family: 'Inter', sans-serif;
-      font-weight: 400;
-    }
-
-    .pricing-card ul {
-      list-style: none;
-      margin: 1.5rem 0;
-    }
-
-    .pricing-card ul li {
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--cream);
-      color: var(--charcoal);
-    }
-
-    .pricing-card ul li::before {
-      content: "✓";
-      color: var(--sage);
-      font-weight: bold;
-      margin-right: 0.75rem;
-    }
-
-    .pricing-card .btn {
-      width: 100%;
-      text-align: center;
-      margin-top: 1.5rem;
-    }
-
-    /* Work/Portfolio */
-    .work {
-      padding: 6rem 2rem;
-      background: linear-gradient(180deg, var(--warm-white) 0%, var(--cream) 100%);
-    }
-
-    .work-grid {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 2.5rem;
-    }
-
-    .work-card {
-      background: white;
-      border-radius: 20px;
-      overflow: hidden;
-      border: 3px solid var(--mocha);
-      box-shadow: 6px 6px 0 var(--sage);
-      transition: all 0.3s;
-    }
-
-    .work-card:hover {
-      transform: translate(-3px, -3px);
-      box-shadow: 9px 9px 0 var(--sage);
-    }
-
-    .work-header {
-      background: linear-gradient(135deg, var(--terracotta) 0%, var(--deep-purple) 100%);
-      padding: 2rem;
-      color: white;
-    }
-
-    .work-header h3 {
-      font-size: 1.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .badge {
-      background: rgba(255, 255, 255, 0.3);
-      padding: 0.4rem 1rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      display: inline-block;
-    }
-
-    .work-body {
-      padding: 2rem;
-    }
-
-    .work-body p {
-      color: var(--charcoal);
-      margin-bottom: 1.5rem;
-    }
-
-    /* Contact - Dark, warm */
-    .contact {
-      background: var(--mocha);
-      color: var(--warm-white);
-      padding: 6rem 2rem;
-      text-align: center;
-    }
-
-    .contact h2 {
-      font-size: 3rem;
-      color: var(--warm-white);
-      margin-bottom: 1rem;
-    }
-
-    .contact p {
-      font-size: 1.25rem;
-      opacity: 0.9;
-      margin-bottom: 2.5rem;
-    }
-
-    .contact-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-
-    .contact-buttons .btn-primary {
-      background: var(--warm-white);
-      color: var(--mocha);
-    }
-
-    .contact-buttons .btn-secondary {
-      border-color: var(--warm-white);
-      color: var(--warm-white);
-    }
-
-    .contact-buttons .btn-secondary:hover {
-      background: var(--warm-white);
-      color: var(--mocha);
-    }
-
-    .contact .email-link {
-      color: var(--tan);
-      text-decoration: underline;
-    }
-
-    /* Footer */
-    footer {
-      background: var(--charcoal);
-      color: var(--cream);
-      padding: 3rem 2rem 2rem;
-    }
-
-    .footer-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
       justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 2rem;
     }
+    .logo { font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+    .logo em { color: var(--gold); font-style: normal; }
+    .logo small { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.4); display: block; letter-spacing: 0.5px; margin-top: -2px; }
+    .nav-link { font-size: 13px; color: rgba(255,255,255,0.5); }
 
-    .footer-links {
-      display: flex;
-      gap: 2rem;
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy2) 100%);
+      color: var(--white);
+      padding: 96px 48px 80px;
+      text-align: center;
     }
-
-    .footer-links a {
-      color: var(--cream);
+    .hero-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 28px;
+    }
+    .hero h1 em { color: var(--gold); font-style: normal; }
+    .hero p {
+      font-size: clamp(16px, 2vw, 19px);
+      color: rgba(255,255,255,0.65);
+      max-width: 580px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 17px;
+      padding: 18px 44px;
+      border-radius: 8px;
       text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.3s;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .hero-cta:hover { background: #e0941e; transform: translateY(-2px); }
+    .hero-sub {
+      margin-top: 18px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
     }
 
-    .footer-links a:hover {
-      opacity: 1;
+    /* ── DIVIDER STRIP ── */
+    .strip {
+      background: var(--gold);
+      color: var(--navy);
+      text-align: center;
+      padding: 14px 48px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
 
-    /* Mobile responsive */
-    @media (max-width: 968px) {
-      nav {
-        display: none; /* Simplify for mobile */
-      }
-
-      .hero {
-        grid-template-columns: 1fr;
-        padding: 3rem 1.5rem;
-      }
-
-      .hero-content h1 {
-        font-size: 2.5rem;
-      }
-
-      .section-header h2 {
-        font-size: 2.5rem;
-      }
-
-      .contact h2 {
-        font-size: 2rem;
-      }
-
-      .footer-container {
-        flex-direction: column;
-        text-align: center;
-      }
+    /* ── SECTION BASE ── */
+    section { padding: 88px 48px; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    .section-eye {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .sub {
+      font-size: 17px;
+      color: var(--gray);
+      max-width: 540px;
+      margin-bottom: 56px;
+      line-height: 1.7;
     }
 
-    /* Large buttons - 2025 usability trend */
-    @media (max-width: 768px) {
-      .btn {
-        width: 100%;
-        padding: 1.25rem 2rem;
-        font-size: 1rem;
-      }
+    /* ── HOW IT WORKS ── */
+    .how { background: var(--light); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    @media (max-width: 640px) { .steps { grid-template-columns: 1fr; } }
+    .step {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 36px 28px;
+      border: 1px solid var(--border);
+    }
+    .step-num {
+      width: 44px;
+      height: 44px;
+      background: var(--navy);
+      color: var(--white);
+      font-size: 18px;
+      font-weight: 900;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .step h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+    .step p  { font-size: 14px; color: var(--gray); line-height: 1.7; }
 
-      .hero-buttons {
-        flex-direction: column;
-      }
+    /* ── BOTH PATHS CALLOUT ── */
+    .paths { background: var(--white); }
+    .paths-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 640px) { .paths-grid { grid-template-columns: 1fr; } }
+    .path {
+      border-radius: 14px;
+      padding: 36px;
+      border: 2px solid var(--border);
+    }
+    .path.a { border-color: var(--blue); background: rgba(26,115,232,0.03); }
+    .path.b { border-color: var(--green); background: rgba(22,163,74,0.03); }
+    .path-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .path.a .path-tag { background: rgba(26,115,232,0.1); color: var(--blue); }
+    .path.b .path-tag { background: rgba(22,163,74,0.1);  color: var(--green); }
+    .path h3 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+    .path p  { font-size: 14px; color: var(--gray); line-height: 1.7; margin-bottom: 18px; }
+    .path ul { list-style: none; padding: 0; }
+    .path ul li {
+      font-size: 14px;
+      color: var(--text);
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+    .path ul li:last-child { border-bottom: none; }
+    .ck { color: var(--green); font-weight: 700; }
+
+    /* ── PRICING ── */
+    .pricing { background: var(--light); }
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 860px) { .price-grid { grid-template-columns: 1fr; } }
+    .price-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 36px 28px;
+      border: 2px solid var(--border);
+      position: relative;
+    }
+    .price-card.pop { border-color: var(--blue); box-shadow: 0 4px 24px rgba(26,115,232,0.12); }
+    .pop-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--blue);
+      color: var(--white);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 14px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+    .price-card .tier     { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); margin-bottom: 4px; }
+    .price-card .scope    { font-size: 22px; font-weight: 900; color: var(--navy); margin-bottom: 4px; letter-spacing: -0.5px; }
+    .price-card .tagline  { font-size: 13px; color: var(--gray); margin-bottom: 18px; }
+    .price-card .timeline {
+      background: var(--light);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .price-card .timeline strong { color: var(--navy); }
+    .price-card .starting { font-size: 12px; color: var(--gray); margin-bottom: 2px; }
+    .price-card .amount   { font-size: 40px; font-weight: 900; color: var(--navy); letter-spacing: -1.5px; line-height: 1; margin-bottom: 24px; }
+    .price-card ul { list-style: none; padding: 0; }
+    .price-card ul li {
+      font-size: 13px;
+      color: var(--gray);
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+    }
+    .price-card ul li:last-child { border-bottom: none; }
+    .price-card ul li.plus { color: var(--navy); font-weight: 600; }
+    .plus-marker { color: var(--blue); font-weight: 700; }
+    .price-includes {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 14px;
+      padding: 32px 36px;
+      margin-top: 32px;
+    }
+    .price-includes h4 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .includes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 24px;
+    }
+    @media (max-width: 640px) { .includes-grid { grid-template-columns: 1fr; } }
+    .includes-grid li {
+      list-style: none;
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      padding: 6px 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── LEAD CAPTURE ── */
+    .lead-section {
+      background: var(--light);
+      padding: 80px 48px;
+    }
+    .lead-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .lead-inner .section-eye { display: block; text-align: center; margin-bottom: 12px; }
+    .lead-inner h2 { font-size: clamp(26px, 4vw, 38px); margin-bottom: 12px; }
+    .lead-inner .sub { margin: 0 auto 36px; text-align: center; }
+    .lead-form {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      text-align: left;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
+    .form-full { margin-bottom: 16px; }
+    .lead-form label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 6px;
+    }
+    .lead-form input,
+    .lead-form select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .lead-form input:focus,
+    .lead-form select:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+    .lead-form .form-submit {
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 16px;
+      padding: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+    .lead-form .form-submit:hover { background: #e0941e; transform: translateY(-1px); }
+    .form-privacy {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 14px;
+    }
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 32px;
+      background: rgba(22,163,74,0.07);
+      border: 2px solid var(--green);
+      border-radius: 12px;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--navy);
+      color: var(--white);
+      text-align: center;
+      padding: 96px 48px;
+    }
+    .cta-section h2 { color: var(--white); font-size: clamp(30px, 5vw, 52px); margin-bottom: 16px; }
+    .cta-section p  { font-size: 18px; color: rgba(255,255,255,0.6); max-width: 480px; margin: 0 auto 40px; line-height: 1.7; }
+    .deposit {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 24px;
+      margin-bottom: 28px;
+    }
+    .deposit strong { color: var(--gold); font-size: 18px; }
+    .cta-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 18px;
+      padding: 20px 52px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .cta-btn:hover { background: #e0941e; transform: translateY(-2px); }
+    .cta-note { margin-top: 18px; font-size: 13px; color: rgba(255,255,255,0.3); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #07111c;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+      padding: 28px 48px;
+      font-size: 12px;
+    }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      nav, section, .hero, .cta-section { padding-left: 24px; padding-right: 24px; }
     }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <header>
-    <div class="header-container">
-      <div class="logo">
-        <div class="logo-icon">🤖</div>
-        <div>
-          <div class="logo-text">SavvyTech</div>
-          <div class="logo-tagline">Build it once. Automate forever.</div>
-        </div>
-      </div>
-      <nav>
-        <a href="#services">Services</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#work">Work</a>
-        <a href="#contact">Contact</a>
-      </nav>
-      <div class="cta-buttons">
-        <a href="#contact" class="btn btn-secondary">Free consult</a>
-        <a href="#jumpstart" class="btn btn-primary">$499 Jumpstart</a>
-      </div>
-    </div>
-  </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Automation, AI agents, and apps that <span class="highlight">make work disappear</span>.</h1>
-      <p>We turn messy processes into smooth, money-making machines: customer-service agents, back-office automations, custom internal tools, and dashboards that actually help you decide.</p>
-      <div class="hero-buttons">
-        <a href="#jumpstart" class="btn btn-primary">Start with $499 Jumpstart</a>
-        <a href="#contact" class="btn btn-secondary">Book a 15‑min consult</a>
-      </div>
-      <p class="roi-note">Typical ROI: hours saved weekly, faster response times, fewer errors. We measure it.</p>
-    </div>
-    <div class="hero-visual">
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <div>
-          <div class="feature-title">AI Support Agent</div>
-          <div class="feature-desc">Answers 24/7, escalates smartly</div>
-        </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚙️</div>
-        <div>
-          <div class="feature-title">Ops Automations</div>
-          <div class="feature-desc">Move data, trigger workflows</div>
-        </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div>
-          <div class="feature-title">Dashboards & BI</div>
-          <div class="feature-desc">Know what to do next</div>
-        </div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🧩</div>
-        <div>
-          <div class="feature-title">Custom Apps</div>
-          <div class="feature-desc">Web apps & internal tools</div>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    SOP<em>sync</em>
+    <small>by SavvyTech Consulting LLC</small>
+  </div>
+  <a href="mailto:savvytechconsult@gmail.com?subject=SOPsync%20Inquiry" class="nav-link">savvytechautomations.com</a>
+</nav>
 
-  <!-- Services -->
-  <section id="services" class="services">
-    <div class="section-header">
-      <h2>What we do</h2>
-      <p>Pick a lane or mix & match. We design, build, and maintain.</p>
-    </div>
-    <div class="services-grid">
-      <div class="service-card">
-        <div class="emoji">🤖</div>
-        <h3>AI Customer Service Agents</h3>
-        <p>Chat, voice, and email agents trained on your data, with handoff to humans when it matters.</p>
-        <a href="#contact">Learn more →</a>
-      </div>
-      <div class="service-card">
-        <div class="emoji">⚙️</div>
-        <h3>Business Automations</h3>
-        <p>From invoices to inventory: connect tools, remove manual steps, stop copy‑pasting.</p>
-        <a href="#contact">Learn more →</a>
-      </div>
-      <div class="service-card">
-        <div class="emoji">🧩</div>
-        <h3>Apps & Integrations</h3>
-        <p>Internal tools, portals, and API integrations tailored to how your team works.</p>
-        <a href="#contact">Learn more →</a>
-      </div>
-      <div class="service-card">
-        <div class="emoji">📊</div>
-        <h3>Data & Dashboards</h3>
-        <p>One source of truth. Clean pipelines, clear dashboards, confident decisions.</p>
-        <a href="#contact">Learn more →</a>
-      </div>
-    </div>
-  </section>
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">SavvyTech Consulting &nbsp;·&nbsp; AI &amp; Process Automation</div>
+    <h1>Your Auditor Will Find<br>Your Process Gaps.<br><em>We Find Them First.</em></h1>
+    <p>Most businesses don't discover their compliance gaps until an auditor finds them — and by then it's expensive. SOPsync silently maps your real workflows, surfaces every deviation, and hands you a complete audit-ready package. Your team never stops working.</p>
+    <a href="#get-started" class="hero-cta" onclick="trackCTA('hero_cta')">Get Audit-Ready — See Pricing</a>
+    <p class="hero-sub">No disruption to your team &nbsp;·&nbsp; No prep work required &nbsp;·&nbsp; Delivered within one week</p>
+  </div>
+</section>
 
-  <!-- Pricing -->
-  <section id="pricing" class="pricing">
-    <div class="section-header">
-      <h2>Simple, transparent pricing</h2>
-      <p>Start small, scale when ready. Cancel anytime.</p>
+<!-- STRIP -->
+<div class="strip">
+  Founded by a 12-year ISO-certified lead auditor with 22 years in government operations — with a proven record of keeping clients compliant and passing multiple annual audits against the largest firms in the industry
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="wrap">
+    <div class="section-eye">How It Works</div>
+    <h2>Three Steps.<br>Zero Disruption.</h2>
+    <p class="sub">We're not here to look over anyone's shoulder. We're here to capture the real process so we can build something solid from it.</p>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Install</h3>
+        <p>We install the SOPsync agent on your approved workstation. No IT team needed. Takes minutes, not days.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Work Normally</h3>
+        <p>Your team does exactly what they always do. SOPsync runs quietly in the background — recording, timing, and mapping each step without interrupting anyone.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Receive Your Package</h3>
+        <p>We deliver a complete illustrated SOP document, deviation report, timing analysis, and audit-ready compliance packet — built from actual observed data, not interviews or assumptions.</p>
+      </div>
+
     </div>
-    <div class="pricing-grid">
-      <div id="jumpstart" class="pricing-card">
-        <h3>Jumpstart</h3>
-        <div class="price">$499 <span>one‑time</span></div>
+  </div>
+</section>
+
+<!-- TWO PATHS -->
+<section class="paths">
+  <div class="wrap">
+    <div class="section-eye">Your Starting Point Doesn't Matter</div>
+    <h2>Have SOPs or Don't —<br>We've Got You Either Way.</h2>
+    <p class="sub">You don't need to prepare anything before we start. We work from wherever you are today.</p>
+    <div class="paths-grid">
+
+      <div class="path a">
+        <div class="path-tag">Already Have SOPs</div>
+        <h3>We Validate What You Have</h3>
+        <p>Upload your existing SOPs or work instructions. We observe your team, compare what happens to what the documentation says, and show you exactly where the gaps are.</p>
         <ul>
-          <li>90‑min strategy workshop</li>
-          <li>Architecture & ROI plan</li>
-          <li>Quick win automation or prototype</li>
-          <li>Launch plan & quote</li>
+          <li><span class="ck">✓</span> Deviation detection by step and severity</li>
+          <li><span class="ck">✓</span> Timing analysis — find where time is lost</li>
+          <li><span class="ck">✓</span> Undocumented workarounds surfaced</li>
+          <li><span class="ck">✓</span> Updated illustrated SOP with step-by-step visuals — audit-compliant and ready to use as a training guide</li>
         </ul>
-        <a href="#contact" class="btn btn-primary">Book Jumpstart</a>
       </div>
-      <div class="pricing-card">
-        <h3>Essentials</h3>
-        <div class="price">$79 <span>/mo</span></div>
+
+      <div class="path b">
+        <div class="path-tag">No SOPs Yet</div>
+        <h3>We Build Them From Scratch</h3>
+        <p>No documentation? No problem. We watch what your team actually does, document the real process, and hand you a complete professional SOP when we're finished.</p>
         <ul>
-          <li>Monitoring & health checks</li>
-          <li>2 hours support/month</li>
-          <li>Minor tweaks & updates</li>
+          <li><span class="ck">✓</span> Zero prep work required from you</li>
+          <li><span class="ck">✓</span> Brief 5-min clarification calls as needed</li>
+          <li><span class="ck">✓</span> Process built from observed reality — not reconstructed from memory</li>
+          <li><span class="ck">✓</span> Complete illustrated SOP handed to you — audit-compliant and ready to use as a training guide from day one</li>
         </ul>
-        <a href="#contact" class="btn btn-secondary">Talk to sales</a>
       </div>
-      <div class="pricing-card">
-        <h3>Growth</h3>
-        <div class="price">$199 <span>/mo</span></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-eye">Pricing</div>
+    <h2>Transparent Pricing.<br>No Surprises.</h2>
+    <p class="sub">Every tier is delivered within one week. Your team never stops working. Audit ready, error reduced, time saved — all in a week.</p>
+    <div class="price-grid">
+
+      <div class="price-card">
+        <div class="tier">Tier 1</div>
+        <div class="scope">Process Snapshot</div>
+        <div class="tagline">The fastest way to see what's really happening</div>
+        <div class="timeline"><strong>Timeline:</strong> Deploy Monday &nbsp;·&nbsp; Observe Mon–Wed &nbsp;·&nbsp; Deliver Friday</div>
+        <div class="starting">Starting at</div>
+        <div class="amount">$2,250</div>
         <ul>
-          <li>Everything in Essentials</li>
-          <li>6 hours build/support</li>
-          <li>Quarterly roadmap</li>
+          <li><span class="ck">✓</span> Who did what vs. your current SOP — side by side</li>
+          <li><span class="ck">✓</span> Successful deviations vs. failed ones — clearly separated</li>
+          <li><span class="ck">✓</span> Step-by-step optimized work instruction for the most efficient path</li>
+          <li><span class="ck">✓</span> Dollar amount tied to every finding (time saved, errors, rework)</li>
+          <li><span class="ck">✓</span> Three-root-cause analysis per deviation: SOP issue, training gap, or system fix</li>
         </ul>
-        <a href="#contact" class="btn btn-secondary">Talk to sales</a>
       </div>
-      <div class="pricing-card featured">
-        <h3>Pro Managed</h3>
-        <div class="price">$499 <span>/mo</span></div>
+
+      <div class="price-card pop">
+        <div class="pop-badge">Most Popular</div>
+        <div class="tier">Tier 2</div>
+        <div class="scope">The Deep Dive</div>
+        <div class="tagline">More data. More accuracy. More value.</div>
+        <div class="timeline"><strong>Timeline:</strong> Deploy Monday &nbsp;·&nbsp; Observe Mon–Fri &nbsp;·&nbsp; Deep-dive walkthrough &nbsp;·&nbsp; Deliver Friday</div>
+        <div class="starting">Starting at</div>
+        <div class="amount">$3,750</div>
         <ul>
-          <li>Dedicated engineer on call</li>
-          <li>16 hours/month build & ops</li>
-          <li>SLAs & incident response</li>
+          <li><span class="ck">✓</span> Everything in Tier 1</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Full week of data — 5 days vs. 2.5 (more accurate time &amp; cost savings)</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Individual workflow map per employee — see exactly how each person differs</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Work instructions issued for all employees, not just the optimized path</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> In-depth walkthrough: we explain exactly how we calculated every finding</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Rewrite additional processes at no extra cost (as identified during deep dive)</li>
         </ul>
-        <a href="#contact" class="btn btn-primary">Get a proposal</a>
       </div>
-    </div>
-    <p style="text-align: center; margin-top: 2rem; color: var(--charcoal); opacity: 0.7;">Custom enterprise? We'll scope it fast.</p>
-  </section>
 
-  <!-- Work/Products -->
-  <section id="work" class="work">
-    <div class="section-header">
-      <h2>Our Work</h2>
-      <p>Real products we've built and launched.</p>
-    </div>
-    <div class="work-grid">
-      <div class="work-card">
-        <div class="work-header">
-          <h3>Spark Driver Tracker</h3>
-          <span class="badge">✨ Live</span>
-        </div>
-        <div class="work-body">
-          <p>Track every delivery trip, maximize earnings, and simplify tax season for delivery drivers.</p>
-          <a href="https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app" class="btn btn-primary">Launch App →</a>
-        </div>
+      <div class="price-card">
+        <div class="tier">Tier 3</div>
+        <div class="scope">Before &amp; After</div>
+        <div class="tagline">Show leadership exactly how much you improved — with numbers</div>
+        <div class="timeline"><strong>Timeline:</strong> Extended observation (weekend + Mon–Tue) &nbsp;·&nbsp; Pull Wed &nbsp;·&nbsp; Deliver Fri</div>
+        <div class="starting">Starting at</div>
+        <div class="amount">$5,600</div>
+        <ul>
+          <li><span class="ck">✓</span> Everything in Tier 1 &amp; 2</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Sample audit of prior-period transactions — establishes your baseline</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Full before/after comparison: accuracy rate, rework hours, error rate delta</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Leadership slide deck formatted for internal presentations</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Professional training rollout roadmap with step-by-step implementation guidance</li>
+          <li><span class="ck plus">+</span> <span class="plus-marker">+</span> Extended data window — maximum accuracy on time and cost savings</li>
+        </ul>
       </div>
-      <div class="work-card">
-        <div class="work-header">
-          <h3>AI Relay</h3>
-          <span class="badge">🚀 Coming Soon</span>
-        </div>
-        <div class="work-body">
-          <p>Multi-agent orchestration system that coordinates AI assistants to handle complex workflows.</p>
-          <a href="#contact" class="btn btn-secondary">Get Notified →</a>
-        </div>
-      </div>
-      <div class="work-card">
-        <div class="work-header">
-          <h3>Bolt</h3>
-          <span class="badge">🚀 Coming Soon</span>
-        </div>
-        <div class="work-body">
-          <p>Lightning-fast automation builder that turns manual processes into automated workflows.</p>
-          <a href="#contact" class="btn btn-secondary">Get Notified →</a>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Contact -->
-  <section id="contact" class="contact">
-    <div>
-      <h2>Tell us what you want to automate</h2>
-      <p>Give us the mess. We'll ship the magic.</p>
-      <div class="contact-buttons">
-        <a href="mailto:hello@savvytechautomations.com" class="btn btn-primary">Book a free consult</a>
-        <a href="#jumpstart" class="btn btn-secondary">Start with $499 Jumpstart</a>
-      </div>
-      <p style="font-size: 0.9rem; opacity: 0.8;">Prefer email? <a href="mailto:hello@savvytechautomations.com" class="email-link">hello@savvytechautomations.com</a></p>
     </div>
-  </section>
 
-  <!-- Footer -->
-  <footer>
-    <div class="footer-container">
-      <div style="font-size: 0.9rem;">© <span id="year"></span> SavvyTech Automations. All rights reserved.</div>
-      <div class="footer-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
-        <a href="mailto:hello@savvytechautomations.com">Contact</a>
-      </div>
+    <!-- EVERY TIER INCLUDES -->
+    <div class="price-includes">
+      <h4>Every Tier Includes</h4>
+      <ul class="includes-grid">
+        <li><span class="ck">✓</span> Silent deployment — zero disruption</li>
+        <li><span class="ck">✓</span> Optimized work instructions — audit-ready, yours to keep</li>
+        <li><span class="ck">✓</span> Dollar amounts tied to every finding</li>
+        <li><span class="ck">✓</span> Three-root-cause analysis for every deviation</li>
+        <li><span class="ck">✓</span> Management-only reporting — never shown to employees</li>
+        <li><span class="ck">✓</span> No group meetings — brief individual questions only (under 10 min)</li>
+      </ul>
     </div>
-  </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
+  </div>
+</section>
 
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
-  </script>
+<!-- LEAD CAPTURE FORM -->
+<section class="lead-section" id="get-started">
+  <div class="lead-inner">
+    <span class="section-eye">Free Scope Call</span>
+    <h2>Not Sure Which Tier Fits?<br>Let's Figure It Out Together.</h2>
+    <p class="sub">Tell us a little about your business. We'll reach out within one business day — no pitch, no pressure. Just a quick conversation about what you're trying to solve.</p>
+
+    <!-- Formspree: go to formspree.io → + New Form → replace FORMSPREE_ID_HERE in the script above -->
+    <form class="lead-form" method="POST" onsubmit="submitLeadForm(event)">
+
+      <div class="form-row">
+        <div>
+          <label for="lead-name">Your Name</label>
+          <input type="text" id="lead-name" name="name" placeholder="Jane Smith" required onfocus="trackFormStart()" />
+        </div>
+        <div>
+          <label for="lead-email">Email Address</label>
+          <input type="email" id="lead-email" name="email" placeholder="jane@company.com" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="lead-company">Company Name</label>
+          <input type="text" id="lead-company" name="company" placeholder="Acme Operations LLC" required />
+        </div>
+        <div>
+          <label for="lead-size">Team Size</label>
+          <select id="lead-size" name="team_size">
+            <option value="">— Select —</option>
+            <option value="1-5">1–5 employees</option>
+            <option value="6-20">6–20 employees</option>
+            <option value="21-100">21–100 employees</option>
+            <option value="100+">100+ employees</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-full">
+        <label for="tier-select">Which Tier Interests You?</label>
+        <select id="tier-select" name="tier">
+          <option value="not sure">Not sure yet — help me decide</option>
+          <option value="tier1">Tier 1 — Process Snapshot ($2,250)</option>
+          <option value="tier2">Tier 2 — The Deep Dive ($3,750)</option>
+          <option value="tier3">Tier 3 — Before &amp; After ($5,600)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="form-submit" onclick="trackCTA('lead_form_submit')">
+        Get My Free Scope Call →
+      </button>
+      <p class="form-privacy">🔒 No spam. No selling your info. Just one conversation.</p>
+    </form>
+
+    <div class="form-success">
+      ✅ Got it! We'll reach out within one business day.
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="wrap">
+    <h2>Ready to See What's Really<br>Happening in Your Operations?</h2>
+    <p>Pick your tier, email us, and we'll lock in your start date. No meetings, no travel, no prep. Just install, work normally, and receive your complete audit-ready package within the week.</p>
+    <a href="#get-started" class="cta-btn" onclick="trackCTA('bottom_cta')">Reserve Your Start Date</a>
+    <p class="cta-note">Questions first? Email us — we respond within one business day.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <strong style="color:rgba(255,255,255,0.5);">SOPsync</strong> &nbsp;·&nbsp;
+    A service of SavvyTech Consulting LLC &nbsp;·&nbsp;
+    <a href="https://savvytechautomations.com">savvytechautomations.com</a> &nbsp;·&nbsp;
+    &copy; 2026 SavvyTech Consulting LLC. All rights reserved.
+  </p>
+</footer>
+
 </body>
 </html>
-<!-- SSL cert renewal trigger - Sun Oct  5 22:56:23 CDT 2025 -->
