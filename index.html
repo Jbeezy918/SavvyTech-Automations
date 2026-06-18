@@ -5,40 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOPsync by SavvyTech — Find Your Process Gaps Before Your Auditor Does</title>
 
-  <!-- ── GOOGLE ANALYTICS 4 ─────────────────────────────────────────────────
-       SETUP: Go to analytics.google.com → Admin → Create Property → Get Measurement ID
-       Replace G-XXXXXXXXXX below with your real ID (looks like G-AB12CD34EF)
-  ──────────────────────────────────────────────────────────────────────────── -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
+    // ── GA4 placeholder (add real ID later via analytics.google.com) ──────────
+    function trackCTA(label) {}
+    function trackFormStart() {}
+    function trackFormSubmit(tier) {}
 
-    // Track CTA button clicks as conversion events
-    function trackCTA(label) {
-      gtag('event', 'cta_click', { event_category: 'conversion', event_label: label });
-    }
-    function trackFormStart() {
-      gtag('event', 'form_start', { event_category: 'lead', event_label: 'lead_capture_form' });
-    }
-    function trackFormSubmit(tier) {
-      gtag('event', 'generate_lead', { event_category: 'lead', event_label: tier, value: 1 });
-    }
-
-    // ── FORM SUBMISSION (Formspree AJAX) ──────────────────────────────────────
-    // SETUP: Go to formspree.io → + New Form → copy your endpoint ID
-    // Replace FORMSPREE_ID_HERE below with your real ID (looks like xpwzabcd)
+    // ── FORM SUBMISSION (Netlify Forms AJAX) ──────────────────────────────────
     async function submitLeadForm(e) {
       e.preventDefault();
       const form = e.target;
       const tier = document.getElementById('tier-select').value;
       try {
-        const resp = await fetch('https://formspree.io/f/FORMSPREE_ID_HERE', {
+        const resp = await fetch('/', {
           method: 'POST',
-          body: new FormData(form),
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(form)).toString()
         });
         if (resp.ok) {
           trackFormSubmit(tier);
@@ -641,8 +623,8 @@
     <h2>Not Sure Which Tier Fits?<br>Let's Figure It Out Together.</h2>
     <p class="sub">Tell us a little about your business. We'll reach out within one business day — no pitch, no pressure. Just a quick conversation about what you're trying to solve.</p>
 
-    <!-- Formspree: go to formspree.io → + New Form → replace FORMSPREE_ID_HERE in the script above -->
-    <form class="lead-form" method="POST" onsubmit="submitLeadForm(event)">
+    <form class="lead-form" name="lead-form" method="POST" data-netlify="true" onsubmit="submitLeadForm(event)">
+      <input type="hidden" name="form-name" value="lead-form" />
 
       <div class="form-row">
         <div>
