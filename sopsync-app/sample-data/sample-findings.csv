@@ -1,0 +1,3 @@
+id,kind,severity,evidence_numbers,confidence,review_status,explanation,recommended_action
+fnd_0,skipped,high,"",0.7,unreviewed,"SOP step ""If the refund is over $500, decide whether a second approval is required."" has no matching observed action in the captured session.","Confirm whether the step was skipped or performed without a captured screen."
+fnd_1,repeated,medium,"4",0.6,unreviewed,"Observed step ""Enter the refund in the Billing Portal"" repeats an earlier action (rework or duplicate entry).","Investigate whether repeated entry can be eliminated or automated."

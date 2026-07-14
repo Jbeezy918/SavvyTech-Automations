@@ -1,0 +1,198 @@
+{
+  "report": "audit",
+  "generatedAt": "2026-07-14T12:00:00.000Z",
+  "client": "Acme Corp",
+  "process": "Customer Refund Process",
+  "session": {
+    "id": "ses_sample",
+    "participant": "Anonymous participant #1",
+    "startedAt": "1970-01-01T00:00:00.000Z",
+    "stoppedAt": "1970-01-01T00:03:15.000Z",
+    "screenshotCount": 5
+  },
+  "complianceScore": 60,
+  "timing": {
+    "totalMs": 105000,
+    "activeMs": 20000,
+    "idleMs": 85000,
+    "steps": [
+      {
+        "stepId": "st1",
+        "title": "Open the Billing Portal and locate the customer order",
+        "order": 1,
+        "durationMs": 8000,
+        "activeMs": 8000,
+        "idleMs": 0,
+        "appSwitchMs": 0,
+        "reworkMs": 0
+      },
+      {
+        "stepId": "st2",
+        "title": "Verify the refund amount matches the approved authorization",
+        "order": 2,
+        "durationMs": 12000,
+        "activeMs": 12000,
+        "idleMs": 0,
+        "appSwitchMs": 0,
+        "reworkMs": 0
+      },
+      {
+        "stepId": "st3",
+        "title": "Enter the refund in the Billing Portal",
+        "order": 3,
+        "durationMs": 45000,
+        "activeMs": 0,
+        "idleMs": 45000,
+        "appSwitchMs": 0,
+        "reworkMs": 0
+      },
+      {
+        "stepId": "st4",
+        "title": "Enter the refund in the Billing Portal",
+        "order": 4,
+        "durationMs": 40000,
+        "activeMs": 0,
+        "idleMs": 40000,
+        "appSwitchMs": 40000,
+        "reworkMs": 0
+      }
+    ],
+    "bottleneckStepIds": [
+      "st3"
+    ],
+    "highVariationStepIds": []
+  },
+  "findings": [
+    {
+      "id": "fnd_0",
+      "sessionId": "ses_sample",
+      "kind": "skipped",
+      "severity": "high",
+      "sopStepId": null,
+      "observedStepId": null,
+      "evidenceScreenshotNumbers": [],
+      "timestamp": null,
+      "explanation": "SOP step \"If the refund is over $500, decide whether a second approval is required.\" has no matching observed action in the captured session.",
+      "confidence": 0.7,
+      "reviewStatus": "unreviewed",
+      "recommendedAction": "Confirm whether the step was skipped or performed without a captured screen."
+    },
+    {
+      "id": "fnd_1",
+      "sessionId": "ses_sample",
+      "kind": "repeated",
+      "severity": "medium",
+      "sopStepId": null,
+      "observedStepId": null,
+      "evidenceScreenshotNumbers": [
+        4
+      ],
+      "timestamp": null,
+      "explanation": "Observed step \"Enter the refund in the Billing Portal\" repeats an earlier action (rework or duplicate entry).",
+      "confidence": 0.6,
+      "reviewStatus": "unreviewed",
+      "recommendedAction": "Investigate whether repeated entry can be eliminated or automated."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "rec_0",
+      "processId": "prc_refund",
+      "sessionId": "ses_sample",
+      "title": "Eliminate duplicate/repeated data entry",
+      "problem": "1 repeated action(s) were observed, indicating duplicate entry or rework.",
+      "supportingEvidenceScreenshotNumbers": [
+        4
+      ],
+      "supportingFindingIds": [],
+      "currentImpactMs": null,
+      "proposedChange": "Introduce copy-forward, pre-fill, or system integration so the data is entered once.",
+      "estimatedTimeSavingsMs": null,
+      "estimatedLaborSavingsUsd": null,
+      "estimatedErrorReductionPct": 20,
+      "implementationDifficulty": "medium",
+      "risk": "low",
+      "confidence": 0.6,
+      "requiresHumanApproval": true,
+      "approved": false,
+      "createdAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "rec_1",
+      "processId": "prc_refund",
+      "sessionId": "ses_sample",
+      "title": "Reduce time in bottleneck step: Enter the refund in the Billing Portal",
+      "problem": "Step \"Enter the refund in the Billing Portal\" takes 45s, well above the process average.",
+      "supportingEvidenceScreenshotNumbers": [],
+      "supportingFindingIds": [],
+      "currentImpactMs": 45000,
+      "proposedChange": "Simplify the form, add validation, or automate the slow portion of this step.",
+      "estimatedTimeSavingsMs": 13500,
+      "estimatedLaborSavingsUsd": 0.17,
+      "estimatedErrorReductionPct": null,
+      "implementationDifficulty": "medium",
+      "risk": "medium",
+      "confidence": 0.5,
+      "requiresHumanApproval": true,
+      "approved": false,
+      "createdAt": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "rec_2",
+      "processId": "prc_refund",
+      "sessionId": "ses_sample",
+      "title": "Address skipped SOP steps",
+      "problem": "1 SOP step(s) had no matching observed action.",
+      "supportingEvidenceScreenshotNumbers": [],
+      "supportingFindingIds": [],
+      "currentImpactMs": null,
+      "proposedChange": "Clarify the SOP and provide targeted training on the missing steps.",
+      "estimatedTimeSavingsMs": null,
+      "estimatedLaborSavingsUsd": null,
+      "estimatedErrorReductionPct": 15,
+      "implementationDifficulty": "low",
+      "risk": "low",
+      "confidence": 0.55,
+      "requiresHumanApproval": true,
+      "approved": false,
+      "createdAt": "1970-01-01T00:00:00.000Z"
+    }
+  ],
+  "evidence": [
+    {
+      "number": 1,
+      "sha256": "sample0000000000000000000000000000000000000000000000000000000000",
+      "trigger": "mouse_click",
+      "redaction": "none",
+      "sensitive": []
+    },
+    {
+      "number": 2,
+      "sha256": "sample0000000000000000000000000000000000000000000000000000000000",
+      "trigger": "mouse_click",
+      "redaction": "none",
+      "sensitive": []
+    },
+    {
+      "number": 3,
+      "sha256": "sample0000000000000000000000000000000000000000000000000000000000",
+      "trigger": "mouse_click",
+      "redaction": "none",
+      "sensitive": []
+    },
+    {
+      "number": 4,
+      "sha256": "sample0000000000000000000000000000000000000000000000000000000000",
+      "trigger": "mouse_click",
+      "redaction": "none",
+      "sensitive": []
+    },
+    {
+      "number": 5,
+      "sha256": "sample0000000000000000000000000000000000000000000000000000000000",
+      "trigger": "mouse_click",
+      "redaction": "none",
+      "sensitive": []
+    }
+  ]
+}

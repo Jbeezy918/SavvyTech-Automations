@@ -1,0 +1,10 @@
+node_modules/
+dist/
+release/
+*.log
+.DS_Store
+# local data (never commit captured evidence or the encrypted DB)
+data/
+*.db
+*.db-wal
+*.db-shm
