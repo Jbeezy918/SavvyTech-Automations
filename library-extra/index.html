@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H Mountain Retreat</title>
+<style>
+:root{
+  --forest:#18392b; --pine:#24513d; --sage:#dce6dc; --cream:#f6f1e7;
+  --gold:#d4a65a; --ink:#17231d; --white:#fff;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:var(--cream)}
+a{text-decoration:none;color:inherit}
+nav{position:absolute;z-index:10;width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 6%;color:#fff}
+.logo{display:flex;gap:12px;align-items:center;font-weight:800;letter-spacing:.08em}
+.mark{width:48px;height:48px;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font-family:Georgia;font-size:28px}
+.navlinks{display:flex;gap:26px;align-items:center;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:999px;background:var(--gold);color:#17231d;font-weight:800;border:0;cursor:pointer}
+.btn.alt{background:#fff;color:var(--forest)}
+.hero{min-height:92vh;display:grid;place-items:center;text-align:center;color:#fff;padding:120px 20px 70px;
+background:linear-gradient(rgba(9,25,18,.43),rgba(9,25,18,.72)),
+url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=88') center/cover}
+.hero-inner{max-width:920px}.eyebrow{text-transform:uppercase;letter-spacing:.25em;font-weight:800;font-size:.78rem}
+h1{font-family:Georgia,serif;font-size:clamp(3.2rem,8vw,7.3rem);line-height:.92;margin:18px 0 24px}
+.hero p{font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.6;max-width:760px;margin:0 auto 34px}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+section{padding:84px 6%}.section-head{max-width:760px;margin-bottom:38px}
+.kicker{color:var(--pine);font-weight:900;letter-spacing:.18em;text-transform:uppercase;font-size:.75rem}
+h2{font-family:Georgia,serif;font-size:clamp(2.3rem,5vw,4.3rem);line-height:1.05;margin:12px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(20,40,30,.10)}
+.card img{width:100%;height:230px;object-fit:cover}
+.card-body{padding:24px}.card h3{font-family:Georgia,serif;font-size:1.55rem;margin:0 0 10px}.card p{line-height:1.65;color:#526057}
+.rate{font-weight:900;color:var(--forest);margin-top:16px}
+.booking{background:var(--forest);color:#fff;display:grid;grid-template-columns:1.05fr .95fr;gap:46px;align-items:center}
+.booking h2{color:#fff}.booking p{color:#d7e1db;line-height:1.7}
+.panel{background:#fff;color:var(--ink);border-radius:24px;padding:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{font-size:.8rem;font-weight:800;display:block;margin-bottom:7px}
+input,select,textarea{width:100%;padding:14px;border:1px solid #d3ddd5;border-radius:12px;font:inherit;background:#fbfcfb}
+.full{grid-column:1/-1}.availability{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.lot{padding:9px 12px;border-radius:999px;border:1px solid #cad7cd;background:#eef4ef;cursor:pointer}
+.lot.active{background:var(--gold);border-color:var(--gold);font-weight:900}
+.events{background:#e6ede6}.event-strip{display:grid;grid-template-columns:1.2fr .8fr;gap:22px}
+.event-photo{min-height:430px;border-radius:24px;background:linear-gradient(rgba(10,30,20,.1),rgba(10,30,20,.45)),url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd4297?auto=format&fit=crop&w=1600&q=85') center/cover}
+.event-copy{background:#fff;border-radius:24px;padding:36px;display:flex;flex-direction:column;justify-content:center}
+.event-copy ul{padding-left:20px;line-height:1.9}
+footer{background:#10251b;color:#dce7df;padding:44px 6%;display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+.small{font-size:.9rem;color:#aebfb4}
+.toast{position:fixed;right:20px;bottom:20px;background:#fff;color:#17231d;padding:16px 20px;border-radius:14px;box-shadow:0 12px 38px rgba(0,0,0,.25);display:none;z-index:30}
+@media(max-width:850px){.navlinks a:not(.btn){display:none}.grid3,.booking,.event-strip{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.hero{min-height:86vh}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo"><div class="mark">H</div><span>H MOUNTAIN</span></div>
+  <div class="navlinks"><a href="#stay">Stay</a><a href="#events">Gather</a><a href="#booking" class="btn">Check Availability</a></div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">A quiet place to reconnect</div>
+    <h1>Find Your Way Back to Nature.</h1>
+    <p>Wooded campsites, peaceful gatherings, family weekends and unforgettable nights under the stars—just outside McAlester, Oklahoma.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#booking">Reserve Your Stay</a>
+      <a class="btn alt" href="#stay">Explore the Retreat</a>
+    </div>
+  </div>
+</header>
+
+<section id="stay">
+  <div class="section-head">
+    <div class="kicker">Stay your way</div>
+    <h2>Room to breathe. Space to belong.</h2>
+    <p>Choose a secluded campsite, settle in for a longer stay, or bring everyone together for a private celebration.</p>
+  </div>
+  <div class="grid3">
+    <article class="card">
+      <img src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1000&q=82" alt="Wooded campsite">
+      <div class="card-body"><h3>Wooded Campsites</h3><p>Private, tree-lined spaces designed for tents, campers and slow mornings outdoors.</p><div class="rate">Sample rate: from $45/night</div></div>
+    </article>
+    <article class="card">
+      <img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=1000&q=82" alt="RV campsite">
+      <div class="card-body"><h3>Extended Stays</h3><p>Weekly and monthly options for guests who want more than a weekend escape.</p><div class="rate">Sample rate: from $225/week</div></div>
+    </article>
+    <article class="card">
+      <img src="https://images.unsplash.com/photo-1475483768296-6163e08872a1?auto=format&fit=crop&w=1000&q=82" alt="Outdoor gathering">
+      <div class="card-body"><h3>Private Gatherings</h3><p>Family reunions, birthdays, retreats and relaxed celebrations surrounded by nature.</p><div class="rate">Custom event pricing</div></div>
+    </article>
+  </div>
+</section>
+
+<section class="booking" id="booking">
+  <div>
+    <div class="kicker" style="color:#d4a65a">Simple reservations</div>
+    <h2>Pick a lot. Choose your dates. Start relaxing.</h2>
+    <p>This prototype demonstrates the booking flow. Rates and availability are sample data and can be connected to a real calendar and Stripe deposit checkout after approval.</p>
+  </div>
+  <div class="panel">
+    <div class="form-grid">
+      <div><label>ARRIVAL</label><input id="arrival" type="date"></div>
+      <div><label>DEPARTURE</label><input id="departure" type="date"></div>
+      <div><label>STAY TYPE</label><select id="stayType"><option>Nightly stay</option><option>Weekly stay</option><option>Monthly stay</option><option>Private event</option></select></div>
+      <div><label>GUESTS</label><select><option>1–2 guests</option><option>3–5 guests</option><option>6–10 guests</option><option>10+ guests</option></select></div>
+      <div class="full"><label>AVAILABLE LOTS — SAMPLE</label><div class="availability">
+        <button class="lot active" type="button">Lot 1 · $45</button><button class="lot" type="button">Lot 3 · $55</button><button class="lot" type="button">Lot 6 · $45</button><button class="lot" type="button">Lot 8 · $65</button>
+      </div></div>
+      <button class="btn full" type="button" onclick="reserve()">Continue to Reservation</button>
+    </div>
+  </div>
+</section>
+
+<section class="events" id="events">
+  <div class="event-strip">
+    <div class="event-photo"></div>
+    <div class="event-copy">
+      <div class="kicker">Gather at H Mountain</div>
+      <h2>Make the woods yours for the day.</h2>
+      <p>Plan a relaxed event without the fluorescent lights and hotel ballroom carpet.</p>
+      <ul><li>Birthday parties and family reunions</li><li>Company and church retreats</li><li>Outdoor dinners and catering</li><li>Private group reservations</li></ul>
+      <a href="mailto:hello@hmountainretreat.com?subject=H%20Mountain%20Event%20Inquiry" class="btn">Request Event Information</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div><div class="logo"><div class="mark">H</div><span>H MOUNTAIN</span></div><p class="small">A peaceful wooded retreat near McAlester, Oklahoma.</p></div>
+  <div class="small">Prototype landing page · Sample pricing and availability<br>© 2026 H Mountain Retreat</div>
+</footer>
+<div class="toast" id="toast">Reservation request started — sample booking flow.</div>
+<script>
+document.querySelectorAll('.lot').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.lot').forEach(x=>x.classList.remove('active')); btn.classList.add('active');
+}));
+function reserve(){
+ const toast=document.getElementById('toast');
+ toast.style.display='block'; setTimeout(()=>toast.style.display='none',3200);
+}
+</script>
+</body>
+</html>

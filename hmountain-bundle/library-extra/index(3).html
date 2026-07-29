@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>H Mountain Retreat</title>
+<style>
+:root{
+  --forest:#18392b;--pine:#24513d;--sage:#dce8df;--mist:#edf3ef;
+  --gold:#d2a255;--cream:#f5f1e8;--ink:#17231d;--white:#fff;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);
+background:linear-gradient(rgba(237,243,239,.96),rgba(237,243,239,.96)),
+url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=2200&q=84') center/cover fixed}
+a{text-decoration:none;color:inherit}
+nav{position:absolute;z-index:20;width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 5%;color:#fff}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.14em}
+.brand-logo{width:72px;height:58px;object-fit:contain;border:0;border-radius:0;
+filter:drop-shadow(0 3px 6px rgba(0,0,0,.30))}
+.navlinks{display:flex;gap:24px;align-items:center;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border-radius:999px;background:var(--gold);color:#17231d;font-weight:900;border:0;cursor:pointer}
+.btn.alt{background:#fff;color:var(--forest)}
+.hero{min-height:92vh;display:grid;place-items:center;text-align:center;color:#fff;padding:120px 20px 70px;
+background:linear-gradient(rgba(9,25,18,.38),rgba(9,25,18,.72)),
+url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=2200&q=88') center/cover}
+.hero-inner{max-width:930px}.eyebrow{text-transform:uppercase;letter-spacing:.25em;font-weight:900;font-size:.78rem}
+h1,h2,h3{font-family:Georgia,serif}
+h1{font-size:clamp(3.2rem,8vw,7.2rem);line-height:.92;margin:18px 0 24px}
+.hero p{font-size:clamp(1.03rem,2vw,1.32rem);line-height:1.6;max-width:760px;margin:0 auto 34px}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+section{padding:82px 6%}
+.section-head{max-width:780px;margin-bottom:38px}.kicker{color:var(--pine);font-weight:900;letter-spacing:.18em;text-transform:uppercase;font-size:.75rem}
+h2{font-size:clamp(2.3rem,5vw,4.2rem);line-height:1.05;margin:12px 0}
+.intro{background:linear-gradient(rgba(233,241,235,.88),rgba(233,241,235,.88)),
+url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2200&q=84') center/cover}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:rgba(255,255,255,.95);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(20,40,30,.13)}
+.card img{width:100%;height:230px;object-fit:cover}.card-body{padding:24px}.card h3{font-size:1.55rem;margin:0 0 10px}.card p{line-height:1.65;color:#526057}
+.rate{font-weight:900;color:var(--forest);margin-top:16px}
+.map-section{background:linear-gradient(rgba(18,49,35,.80),rgba(18,49,35,.88)),
+url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=2200&q=85') center/cover;color:#fff}
+.map-section .kicker{color:#e8bc70}.map-section p{color:#d8e3dc;line-height:1.7}
+.camp-map{position:relative;min-height:720px;border-radius:28px;overflow:hidden;margin-top:34px;
+background:
+linear-gradient(rgba(10,45,28,.10),rgba(10,45,28,.22)),
+url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2000&q=88') center/cover;
+box-shadow:0 20px 60px rgba(0,0,0,.30);border:1px solid rgba(255,255,255,.28)}
+.map-shade{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 25%,rgba(4,29,17,.24) 100%)}
+.trail-svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.24))}
+.trail-edge{fill:none;stroke:#5c4930;stroke-width:34;stroke-linecap:round;stroke-linejoin:round}
+.trail-main{fill:none;stroke:#a88457;stroke-width:25;stroke-linecap:round;stroke-linejoin:round}
+.trail-ruts{fill:none;stroke:rgba(235,216,183,.58);stroke-width:2.5;stroke-dasharray:8 14;stroke-linecap:round}
+.clearing{position:absolute;width:74px;height:58px;border-radius:48% 52% 44% 56%;
+background:radial-gradient(ellipse at center,#b99d6c 0 45%,#8c754c 58%,rgba(69,92,55,.72) 69%,rgba(19,67,38,.08) 74%);
+transform:translate(-50%,-50%);display:grid;place-items:center;filter:drop-shadow(0 6px 8px rgba(0,0,0,.32))}
+.site{width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#174d35;color:#fff;
+font-weight:900;font-size:.78rem;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.35);transition:.18s}
+.site:hover{transform:scale(1.16);background:#d2a255;color:#17231d}
+.legend{position:absolute;left:20px;bottom:20px;background:rgba(255,255,255,.94);color:var(--ink);
+padding:13px 16px;border-radius:14px;font-size:.86rem;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.map-title{position:absolute;right:20px;top:20px;background:rgba(16,54,37,.90);padding:11px 15px;border-radius:14px;
+font-size:.82rem;color:#fff;border:1px solid rgba(255,255,255,.28)}
+.events{background:linear-gradient(rgba(232,239,233,.92),rgba(232,239,233,.92)),
+url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2200&q=82') center/cover}
+.event-strip{display:grid;grid-template-columns:1.08fr .92fr;gap:24px}.event-photo{min-height:470px;border-radius:24px;
+background:linear-gradient(rgba(10,30,20,.08),rgba(10,30,20,.42)),
+url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd4297?auto=format&fit=crop&w=1600&q=88') center/cover;
+box-shadow:0 16px 40px rgba(20,40,30,.18)}
+.event-copy{background:rgba(255,255,255,.96);border-radius:24px;padding:38px;display:flex;flex-direction:column;justify-content:center}
+.event-copy ul{padding-left:20px;line-height:1.9}
+footer{background:#10251b;color:#dce7df;padding:42px 6%;display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}.small{font-size:.9rem;color:#aebfb4}
+.modal{display:none;position:fixed;inset:0;background:rgba(5,18,12,.72);z-index:100;place-items:center;padding:20px}
+.modal.open{display:grid}.modal-card{width:min(560px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 30px 90px rgba(0,0,0,.4)}
+.modal-top{display:flex;justify-content:space-between;align-items:start;gap:20px}.close{border:0;background:#edf3ef;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}label{font-size:.78rem;font-weight:900;display:block;margin-bottom:7px}
+input,select{width:100%;padding:13px;border:1px solid #ccd8d0;border-radius:11px;font:inherit}.full{grid-column:1/-1}
+@media(max-width:850px){.navlinks a:not(.btn){display:none}.grid3,.event-strip{grid-template-columns:1fr}.camp-map{min-height:620px}.clearing{width:58px;height:46px}.site{width:30px;height:30px;font-size:.7rem}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand"><img class="brand-logo" src="assets/h-symbol.png" alt="H Mountain logo"><span>MOUNTAIN</span></div>
+  <div class="navlinks"><a href="#stay">Stay</a><a href="#sites">Campsites</a><a href="#events">Gather</a><a href="#sites" class="btn">Check Availability</a></div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">H Mountain Retreat · Interactive Preview</div>
+    <h1>Find Your Way Back to Nature.</h1>
+    <p>Wooded campsites, peaceful gatherings, family weekends and unforgettable nights under the stars—just outside McAlester, Oklahoma.</p>
+    <div class="hero-actions"><a class="btn" href="#sites">Choose a Campsite</a><a class="btn alt" href="#stay">Explore the Retreat</a></div>
+  </div>
+</header>
+
+<section id="stay" class="intro">
+  <div class="section-head"><div class="kicker">Stay your way</div><h2>Room to breathe. Space to belong.</h2><p>Choose a secluded campsite, settle in for a longer stay, or bring everyone together for a private celebration.</p></div>
+  <div class="grid3">
+    <article class="card"><img src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1000&q=82"><div class="card-body"><h3>Wooded Campsites</h3><p>Private, tree-lined spaces for tents, campers and slow mornings outdoors.</p><div class="rate">Sample: from $45/night</div></div></article>
+    <article class="card"><img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=1000&q=82"><div class="card-body"><h3>Extended Stays</h3><p>Weekly and monthly options for guests who want more than a weekend escape.</p><div class="rate">Sample: from $225/week</div></div></article>
+    <article class="card"><img src="https://images.unsplash.com/photo-1475483768296-6163e08872a1?auto=format&fit=crop&w=1000&q=82"><div class="card-body"><h3>Private Gatherings</h3><p>Family reunions, birthdays, retreats and relaxed celebrations surrounded by nature.</p><div class="rate">Custom event pricing</div></div></article>
+  </div>
+</section>
+
+<section id="sites" class="map-section">
+  <div class="section-head"><div class="kicker">Interactive campsite map</div><h2>Choose your place in the woods.</h2><p>This aerial-style concept map shows the wooded property from above, with a winding dirt trail and 27 individual cleared campsites. Select any numbered site to open its reservation calendar.</p></div>
+  <div class="camp-map">
+    <div class="map-shade"></div>
+    <svg class="trail-svg" viewBox="0 0 1000 720" preserveAspectRatio="none" aria-hidden="true">
+      <path class="trail-edge" d="M55,650 C210,600 235,505 420,485 C610,463 720,405 665,316 C610,226 452,236 405,160 C365,95 474,52 930,70"/>
+      <path class="trail-main" d="M55,650 C210,600 235,505 420,485 C610,463 720,405 665,316 C610,226 452,236 405,160 C365,95 474,52 930,70"/>
+      <path class="trail-ruts" d="M55,650 C210,600 235,505 420,485 C610,463 720,405 665,316 C610,226 452,236 405,160 C365,95 474,52 930,70"/>
+    </svg>
+    <div class="map-title">CONCEPT PROPERTY MAP · 27 SITES</div>
+    <div class="clearing" style="left:10%;top:14%">
+        <button class="site" title="Campsite 1" onclick="openSite('Campsite 1','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">1</button>
+      </div><div class="clearing" style="left:22%;top:9%">
+        <button class="site" title="Campsite 2" onclick="openSite('Campsite 2','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">2</button>
+      </div><div class="clearing" style="left:36%;top:15%">
+        <button class="site" title="Campsite 3" onclick="openSite('Campsite 3','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">3</button>
+      </div><div class="clearing" style="left:52%;top:10%">
+        <button class="site" title="Campsite 4" onclick="openSite('Campsite 4','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">4</button>
+      </div><div class="clearing" style="left:70%;top:13%">
+        <button class="site" title="Campsite 5" onclick="openSite('Campsite 5','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">5</button>
+      </div><div class="clearing" style="left:88%;top:10%">
+        <button class="site" title="Campsite 6" onclick="openSite('Campsite 6','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">6</button>
+      </div><div class="clearing" style="left:15%;top:29%">
+        <button class="site" title="Campsite 7" onclick="openSite('Campsite 7','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">7</button>
+      </div><div class="clearing" style="left:31%;top:28%">
+        <button class="site" title="Campsite 8" onclick="openSite('Campsite 8','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">8</button>
+      </div><div class="clearing" style="left:48%;top:25%">
+        <button class="site" title="Campsite 9" onclick="openSite('Campsite 9','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">9</button>
+      </div><div class="clearing" style="left:67%;top:28%">
+        <button class="site" title="Campsite 10" onclick="openSite('Campsite 10','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">10</button>
+      </div><div class="clearing" style="left:84%;top:25%">
+        <button class="site" title="Campsite 11" onclick="openSite('Campsite 11','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">11</button>
+      </div><div class="clearing" style="left:9%;top:45%">
+        <button class="site" title="Campsite 12" onclick="openSite('Campsite 12','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">12</button>
+      </div><div class="clearing" style="left:25%;top:43%">
+        <button class="site" title="Campsite 13" onclick="openSite('Campsite 13','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">13</button>
+      </div><div class="clearing" style="left:42%;top:46%">
+        <button class="site" title="Campsite 14" onclick="openSite('Campsite 14','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">14</button>
+      </div><div class="clearing" style="left:60%;top:43%">
+        <button class="site" title="Campsite 15" onclick="openSite('Campsite 15','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">15</button>
+      </div><div class="clearing" style="left:78%;top:46%">
+        <button class="site" title="Campsite 16" onclick="openSite('Campsite 16','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">16</button>
+      </div><div class="clearing" style="left:91%;top:42%">
+        <button class="site" title="Campsite 17" onclick="openSite('Campsite 17','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">17</button>
+      </div><div class="clearing" style="left:16%;top:60%">
+        <button class="site" title="Campsite 18" onclick="openSite('Campsite 18','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">18</button>
+      </div><div class="clearing" style="left:34%;top:61%">
+        <button class="site" title="Campsite 19" onclick="openSite('Campsite 19','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">19</button>
+      </div><div class="clearing" style="left:52%;top:58%">
+        <button class="site" title="Campsite 20" onclick="openSite('Campsite 20','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">20</button>
+      </div><div class="clearing" style="left:69%;top:62%">
+        <button class="site" title="Campsite 21" onclick="openSite('Campsite 21','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">21</button>
+      </div><div class="clearing" style="left:86%;top:59%">
+        <button class="site" title="Campsite 22" onclick="openSite('Campsite 22','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">22</button>
+      </div><div class="clearing" style="left:10%;top:77%">
+        <button class="site" title="Campsite 23" onclick="openSite('Campsite 23','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">23</button>
+      </div><div class="clearing" style="left:28%;top:78%">
+        <button class="site" title="Campsite 24" onclick="openSite('Campsite 24','$55/night','Wooded campsite with a cleared pad beside the dirt trail')">24</button>
+      </div><div class="clearing" style="left:47%;top:76%">
+        <button class="site" title="Campsite 25" onclick="openSite('Campsite 25','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">25</button>
+      </div><div class="clearing" style="left:67%;top:80%">
+        <button class="site" title="Campsite 26" onclick="openSite('Campsite 26','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">26</button>
+      </div><div class="clearing" style="left:87%;top:76%">
+        <button class="site" title="Campsite 27" onclick="openSite('Campsite 27','$45/night','Wooded campsite with a cleared pad beside the dirt trail')">27</button>
+      </div>
+    <div class="legend">Numbered clearings are clickable campsites. The dirt trail follows the property—not a lake.</div>
+  </div>
+</section>
+
+<section class="events" id="events">
+  <div class="event-strip">
+    <div class="event-photo" role="img" aria-label="Outdoor gathering in nature"></div>
+    <div class="event-copy"><div class="kicker">Gather at H Mountain</div><h2>Make the woods yours for the day.</h2><p>Plan a relaxed event without fluorescent lights and hotel ballroom carpet.</p>
+      <ul><li>Birthday parties and family reunions</li><li>Company and church retreats</li><li>Outdoor dinners and catering</li><li>Private group reservations</li></ul>
+      <a href="mailto:hello@hmountainretreat.com?subject=H%20Mountain%20Event%20Inquiry" class="btn">Request Event Information</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div><div class="brand"><img class="brand-logo" src="assets/h-symbol.png" alt="H Mountain logo"><span>MOUNTAIN</span></div><p class="small">A peaceful wooded retreat near McAlester, Oklahoma.</p></div>
+  <div class="small">Prototype page · Sample pricing and availability<br>© 2026 H Mountain Retreat</div>
+</footer>
+
+<div class="modal" id="siteModal" onclick="outsideClose(event)">
+  <div class="modal-card">
+    <div class="modal-top"><div><div class="kicker">Reserve this site</div><h2 id="siteName" style="font-size:2.4rem;margin-bottom:8px">Campsite</h2><strong id="siteRate"></strong><p id="siteDesc"></p></div><button class="close" onclick="closeSite()">×</button></div>
+    <div class="form-grid">
+      <div><label>ARRIVAL</label><input type="date"></div>
+      <div><label>DEPARTURE</label><input type="date"></div>
+      <div><label>GUESTS</label><select><option>1–2 guests</option><option>3–5 guests</option><option>6–10 guests</option></select></div>
+      <div><label>STAY TYPE</label><select><option>Nightly</option><option>Weekly</option><option>Monthly</option></select></div>
+      <button class="btn full" onclick="alert('Sample reservation started. This will connect to the real booking and deposit system.')">Continue to Reservation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openSite(name,rate,desc){
+ document.getElementById('siteName').textContent=name;
+ document.getElementById('siteRate').textContent=rate;
+ document.getElementById('siteDesc').textContent=desc;
+ document.getElementById('siteModal').classList.add('open');
+}
+function closeSite(){document.getElementById('siteModal').classList.remove('open')}
+function outsideClose(e){if(e.target.id==='siteModal')closeSite()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSite()})
+</script>
+</body>
+</html>
