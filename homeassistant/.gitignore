@@ -1,0 +1,35 @@
+# Home Assistant .gitignore
+
+# Secrets - NEVER commit
+secrets.yaml
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Log files
+*.log
+*.log.*
+
+# Internal storage (contains auth tokens, device states)
+.storage/
+
+# Dependencies (auto-installed)
+deps/
+
+# Cloud config
+.cloud/
+
+# Text-to-speech cache
+tts/
+
+# Temporary files
+*.tmp
+*.bak
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
