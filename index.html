@@ -10,6 +10,8 @@
   <meta property="og:description" content="We build automations, AI support agents, internal apps, and revenue-boosting data workflows." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://savvytechautomations.com" />
+  <!-- Add a Stripe Payment Link here when the product is created in Stripe. -->
+  <meta name="savvytech-stripe-payment-link" content="" />
   <style>
     * {
       margin: 0;
@@ -218,6 +220,26 @@
       color: var(--mocha);
       font-style: italic;
     }
+
+    .proof-strip {
+      max-width: 1180px;
+      margin: -2.75rem auto 5.5rem;
+      padding: 1.1rem 1.4rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      background: rgba(255,255,255,.9);
+      border: 2px solid var(--mocha);
+      border-radius: 18px;
+      box-shadow: 7px 7px 0 var(--sage);
+      position: relative;
+      z-index: 4;
+    }
+    .proof-strip div { display:flex; align-items:center; gap:.8rem; padding:.45rem .7rem; }
+    .proof-strip div + div { border-left:1px solid rgba(112,79,59,.25); }
+    .proof-strip b { color:var(--deep-purple); font-size:1.2rem; }
+    .proof-strip strong { display:block; font-size:.92rem; }
+    .proof-strip small { color:var(--charcoal); opacity:.68; display:block; }
 
     /* Live automation network */
     .hero-visual {
@@ -778,6 +800,9 @@
         grid-row: 1;
         margin: 0 auto 18px;
       }
+
+      .proof-strip { grid-template-columns:1fr; margin:0 1.5rem 4rem; }
+      .proof-strip div + div { border-left:0; border-top:1px solid rgba(112,79,59,.25); }
     }
   </style>
 </head>
@@ -864,6 +889,12 @@
     </div>
   </section>
 
+  <aside class="proof-strip" aria-label="SavvyTech service highlights">
+    <div><b>01</b><span><strong>One focused Jumpstart</strong><small>Strategy, prototype, and launch path</small></span></div>
+    <div><b>02</b><span><strong>Stripe-ready checkout</strong><small>One payment link activates secure sales</small></span></div>
+    <div><b>03</b><span><strong>Measured after launch</strong><small>Hours saved, errors reduced, ROI tracked</small></span></div>
+  </aside>
+
   <!-- Services -->
   <section id="services" class="services">
     <div class="section-header">
@@ -914,7 +945,7 @@
           <li>Quick win automation or prototype</li>
           <li>Launch plan & quote</li>
         </ul>
-        <a href="#contact" class="btn btn-primary">Book Jumpstart</a>
+        <a href="#contact" class="btn btn-primary" data-stripe-checkout>Book Jumpstart</a>
       </div>
       <div class="pricing-card">
         <h3>Essentials</h3>
@@ -1032,6 +1063,18 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Stripe Payment Links keep card details off this site. Add the live link
+    // to the meta tag above and every Jumpstart checkout button activates.
+    const stripeLink = document.querySelector('meta[name="savvytech-stripe-payment-link"]')?.content.trim();
+    if (stripeLink && /^https:\/\/(buy|checkout)\.stripe\.com\//.test(stripeLink)) {
+      document.querySelectorAll('[data-stripe-checkout]').forEach(button => {
+        button.href = stripeLink;
+        button.textContent = 'Buy Jumpstart securely →';
+        button.target = '_blank';
+        button.rel = 'noopener';
+      });
+    }
 
     // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
