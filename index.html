@@ -219,9 +219,127 @@
       font-style: italic;
     }
 
-    /* Hero visual - photo cutout style */
+    /* Live automation network */
     .hero-visual {
       position: relative;
+      min-height: 560px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 210px 120px;
+      padding: 28px 0;
+      isolation: isolate;
+    }
+
+    .hero-visual::before,
+    .work::before {
+      content: "";
+      position: absolute;
+      inset: -30px;
+      z-index: -2;
+      opacity: .18;
+      background:
+        radial-gradient(circle at 12% 18%, var(--deep-purple) 0 3px, transparent 4px),
+        radial-gradient(circle at 78% 72%, var(--terracotta) 0 3px, transparent 4px),
+        linear-gradient(90deg, transparent 48%, rgba(92,75,153,.45) 49% 51%, transparent 52%) 0 0/74px 74px,
+        linear-gradient(0deg, transparent 48%, rgba(136,168,130,.55) 49% 51%, transparent 52%) 0 0/74px 74px;
+      mask-image: radial-gradient(ellipse, black 25%, transparent 75%);
+    }
+
+    .network-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      z-index: -1;
+    }
+
+    .network-lines line {
+      stroke: rgba(92,75,153,.42);
+      stroke-width: 2.2;
+      stroke-dasharray: 7 8;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .network-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 168px;
+      height: 168px;
+      transform: translate(-50%, -50%);
+      border-radius: 30px;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      color: white;
+      background: linear-gradient(145deg, var(--deep-purple), #382c6d);
+      border: 6px solid rgba(255,255,255,.86);
+      box-shadow: 0 22px 55px rgba(92,75,153,.32), 0 0 0 8px rgba(92,75,153,.1);
+      z-index: 3;
+    }
+
+    .network-core strong {
+      font-family: 'Fraunces', serif;
+      font-size: 1.25rem;
+    }
+
+    .network-core small {
+      opacity: .78;
+      margin-top: 4px;
+    }
+
+    .core-ring {
+      position: absolute;
+      inset: 15px;
+      border: 1px dashed rgba(255,255,255,.44);
+      border-radius: 23px;
+      animation: core-spin 12s linear infinite;
+    }
+
+    .core-bit, .packet {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      background: #ffd07e;
+      box-shadow: 0 0 14px #ffd07e;
+    }
+
+    .core-bit { left: 50%; top: 50%; z-index: 4; }
+    .core-bit:nth-of-type(2) { animation: mix-a 2.8s ease-in-out infinite; background:#88d8c4; box-shadow:0 0 14px #88d8c4; }
+    .core-bit:nth-of-type(3) { animation: mix-b 3.2s ease-in-out infinite; }
+    .core-bit:nth-of-type(4) { animation: mix-c 2.5s ease-in-out infinite; background:#f29a7d; box-shadow:0 0 14px #f29a7d; }
+
+    .packet {
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      offset-rotate: 0deg;
+      animation: packet-run 3.4s cubic-bezier(.55,.08,.45,.92) infinite;
+    }
+    .packet.p1 { offset-path: path("M 0 0 L -190 -188"); }
+    .packet.p2 { offset-path: path("M 0 0 L 190 -188"); animation-delay: -.85s; background:#88d8c4; box-shadow:0 0 14px #88d8c4; }
+    .packet.p3 { offset-path: path("M 0 0 L -190 188"); animation-delay: -1.7s; background:#f29a7d; box-shadow:0 0 14px #f29a7d; }
+    .packet.p4 { offset-path: path("M 0 0 L 190 188"); animation-delay: -2.55s; }
+
+    @keyframes packet-run {
+      0%, 8% { offset-distance: 0%; opacity: 0; transform: scale(.55); }
+      16%, 42% { opacity: 1; }
+      48% { offset-distance: 100%; transform: scale(1); opacity: 1; }
+      55% { offset-distance: 100%; opacity: 0; }
+      62% { offset-distance: 100%; opacity: 1; }
+      92% { offset-distance: 0%; opacity: 1; transform: scale(.75); }
+      100% { offset-distance: 0%; opacity: 0; }
+    }
+    @keyframes core-spin { to { transform: rotate(360deg); } }
+    @keyframes mix-a { 50% { transform: translate(43px,-30px) rotate(180deg); } }
+    @keyframes mix-b { 50% { transform: translate(-46px,25px) rotate(-180deg); } }
+    @keyframes mix-c { 50% { transform: translate(28px,43px) rotate(140deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .packet, .core-bit, .core-ring { animation: none !important; }
     }
 
     .feature-card {
@@ -230,9 +348,12 @@
       padding: 1.5rem;
       box-shadow: 0 10px 30px rgba(112, 79, 59, 0.1);
       border: 3px solid var(--cream);
-      margin-bottom: 1rem;
+      margin: 0;
       transform: rotate(0.5deg); /* Subtle rotation */
       transition: transform 0.3s;
+      align-self: center;
+      position: relative;
+      z-index: 2;
     }
 
     .feature-card:nth-child(even) {
@@ -427,6 +548,9 @@
     .work {
       padding: 6rem 2rem;
       background: linear-gradient(180deg, var(--warm-white) 0%, var(--cream) 100%);
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
     }
 
     .work-grid {
@@ -478,6 +602,42 @@
       color: var(--charcoal);
       margin-bottom: 1.5rem;
     }
+
+    .sop-visual {
+      height: 150px;
+      margin: -2rem -2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, #241d48, var(--deep-purple));
+    }
+
+    .sop-page {
+      position:absolute;
+      width:72px;
+      height:92px;
+      top:29px;
+      border-radius:8px;
+      background:white;
+      box-shadow:0 8px 22px rgba(0,0,0,.2);
+    }
+    .sop-page::before {
+      content:"";
+      position:absolute;
+      inset:19px 13px;
+      background:repeating-linear-gradient(#d7d0e8 0 5px,transparent 5px 13px);
+    }
+    .sop-page.left { left:38px; transform:rotate(-7deg); }
+    .sop-page.right { right:38px; transform:rotate(7deg); }
+    .sop-sync {
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-content:center;
+      font-size:35px;
+      color:#ffd07e;
+      animation:sop-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes sop-pulse { 50% { transform:rotate(180deg) scale(1.12); } }
 
     /* Contact - Dark, warm */
     .contact {
@@ -600,6 +760,24 @@
       .hero-buttons {
         flex-direction: column;
       }
+
+      .hero-visual {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 14px;
+        padding: 40px 0 0;
+      }
+
+      .network-lines, .packet { display: none; }
+      .network-core {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        grid-row: 1;
+        margin: 0 auto 18px;
+      }
     }
   </style>
 </head>
@@ -639,6 +817,22 @@
       <p class="roi-note">Typical ROI: hours saved weekly, faster response times, fewer errors. We measure it.</p>
     </div>
     <div class="hero-visual">
+      <svg class="network-lines" viewBox="0 0 520 560" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="260" y1="280" x2="75" y2="82"></line>
+        <line x1="260" y1="280" x2="445" y2="82"></line>
+        <line x1="260" y1="280" x2="75" y2="478"></line>
+        <line x1="260" y1="280" x2="445" y2="478"></line>
+      </svg>
+      <div class="network-core" aria-label="SavvyTech automation engine processing and routing data">
+        <span class="core-ring"></span>
+        <span class="core-bit"></span><span class="core-bit"></span><span class="core-bit"></span>
+        <strong>Savvy Engine</strong>
+        <small>mix · route · automate</small>
+      </div>
+      <span class="packet p1" aria-hidden="true"></span>
+      <span class="packet p2" aria-hidden="true"></span>
+      <span class="packet p3" aria-hidden="true"></span>
+      <span class="packet p4" aria-hidden="true"></span>
       <div class="feature-card">
         <div class="feature-icon">🤖</div>
         <div>
@@ -771,6 +965,21 @@
         <div class="work-body">
           <p>Track every delivery trip, maximize earnings, and simplify tax season for delivery drivers.</p>
           <a href="https://sparkdrivertracker-gatvawrbusycdxuyat6lmb.streamlit.app" class="btn btn-primary">Launch App →</a>
+        </div>
+      </div>
+      <div class="work-card">
+        <div class="work-header">
+          <h3>SOP Sync</h3>
+          <span class="badge">🛠 In Development</span>
+        </div>
+        <div class="work-body">
+          <div class="sop-visual" role="img" aria-label="Two procedure documents synchronizing into one polished workflow">
+            <span class="sop-page left"></span>
+            <span class="sop-sync">⟳</span>
+            <span class="sop-page right"></span>
+          </div>
+          <p>Capture work steps and screenshots, keep procedures synchronized, and export clear SOPs your whole team can follow.</p>
+          <a href="#contact" class="btn btn-secondary">Join the preview →</a>
         </div>
       </div>
       <div class="work-card">
