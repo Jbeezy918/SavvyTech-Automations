@@ -93,6 +93,27 @@ So the same idea spread across your Gmail *and* Yahoo accounts can be pulled
 together by tag, or split back apart by account — because either way it's all
 yours.
 
+### Auto-tagging with your own local LLM
+
+Don't want to tag hundreds of conversations by hand? Point your **own** local
+model at the vault and let it suggest idea/plan tags:
+
+```bash
+python3 vault.py autotag --dry-run     # preview suggestions, save nothing
+python3 vault.py autotag               # tag conversations that have no auto tags yet
+python3 vault.py autotag --all         # (re)tag everything
+python3 vault.py autotag --conv 42     # just one conversation
+```
+
+- **Powered by you:** it talks to a local [Ollama](https://ollama.com) model
+  (default `llama3.1` at `http://localhost:11434`). Override with `--model`
+  and `--endpoint`, or `OLLAMA_MODEL` / `OLLAMA_HOST`. Nothing leaves your machine.
+- **No setup? Still works.** If no local LLM is reachable, it falls back to a
+  built-in keyword tagger so you get *something* with zero install.
+- **Your hand-tags are safe.** Auto tags are marked separately — re-running
+  `autotag` only ever refreshes its own tags and never touches ones you set
+  yourself. Anything it suggests, you can still `untag`.
+
 ---
 
 ## Notes
@@ -110,6 +131,6 @@ yours.
 
 ## Roadmap (next steps we can add)
 
-- `auto-tag` — have a local LLM read each conversation and suggest idea/plan tags
+- ✅ `autotag` — a local LLM suggests idea/plan tags (done)
 - `export` — dump a tag's conversations to Markdown for a project brief
 - Semi-automated **requesting** of new exports (reminders + pre-filled links)

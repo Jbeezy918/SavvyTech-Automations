@@ -15,6 +15,7 @@ Usage:
     python3 vault.py tag <conv_id> <tag>  # file a conversation under an idea/plan
     python3 vault.py untag <conv_id> <tag>
     python3 vault.py tags                 # list all tags and counts
+    python3 vault.py autotag [--all]      # let your own local LLM suggest idea tags
     python3 vault.py stats                # overview of what's in the vault
 
 The database lives next to this script as vault.db (override with --db PATH).
@@ -25,8 +26,11 @@ import datetime as _dt
 import glob
 import json
 import os
+import re
 import sqlite3
 import sys
+import urllib.error
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB = os.path.join(HERE, "vault.db")
@@ -88,11 +92,16 @@ def connect(db_path):
 
 
 def _migrate(conn):
-    """Add the 'account' provenance column to vaults created before it existed."""
+    """Add columns that newer versions rely on to older vaults."""
     for table in ("conversations", "sources"):
         cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
         if "account" not in cols:
             conn.execute(f"ALTER TABLE {table} ADD COLUMN account TEXT NOT NULL DEFAULT 'unknown'")
+    # Distinguish auto-suggested tags from ones you set by hand, so re-running
+    # autotag only ever touches its own tags.
+    ct_cols = {r["name"] for r in conn.execute("PRAGMA table_info(conversation_tags)")}
+    if "source" not in ct_cols:
+        conn.execute("ALTER TABLE conversation_tags ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_identity "
                  "ON conversations(provider, account, ext_id)")
     conn.commit()
@@ -418,13 +427,17 @@ def _get_tag_id(conn, name):
     return conn.execute("SELECT id FROM tags WHERE name=?", (name,)).fetchone()[0]
 
 
+def _apply_tag(conn, conv_id, name, source="manual"):
+    tag_id = _get_tag_id(conn, name)
+    conn.execute("INSERT OR IGNORE INTO conversation_tags(conversation_id, tag_id, source) "
+                 "VALUES (?,?,?)", (conv_id, tag_id, source))
+
+
 def cmd_tag(conn, args):
     if not conn.execute("SELECT 1 FROM conversations WHERE id=?", (args.conv_id,)).fetchone():
         print(f"No conversation with id {args.conv_id}")
         return
-    tag_id = _get_tag_id(conn, args.tag)
-    conn.execute("INSERT OR IGNORE INTO conversation_tags(conversation_id, tag_id) VALUES (?,?)",
-                 (args.conv_id, tag_id))
+    _apply_tag(conn, args.conv_id, args.tag, "manual")
     conn.commit()
     print(f"Filed conversation {args.conv_id} under #{args.tag}")
 
@@ -484,6 +497,141 @@ def cmd_accounts(conn, args):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Auto-tagging — powered by YOUR OWN local LLM (Ollama), with a no-setup fallback
+# ─────────────────────────────────────────────────────────────────────────────
+_SLUG_RE = re.compile(r"[^a-z0-9]+")
+_STOPWORDS = set("""
+a an the and or but if then else for to of in on at by with from into over under
+is are was were be been being do does did done have has had having i you he she it
+we they me him her them my your our their this that these those what which who whom
+how why when where can could should would will shall may might must not no yes ok
+okay just like get got make made want need know think see look use using used one
+two more most some any all both each few many much such very really thing things
+please thanks thank hello hi hey about there here as so than too also let lets im
+ive dont cant wont youre thats what's i'm it's don't
+""".split())
+
+
+def _slug(text, max_words=3):
+    words = _SLUG_RE.sub(" ", text.lower()).split()
+    words = [w for w in words if w and w not in _STOPWORDS][:max_words]
+    return "-".join(words)
+
+
+def _conversation_text(conn, conv_id, limit_chars=2000):
+    parts = []
+    for m in conn.execute("SELECT role, text FROM messages WHERE conversation_id=? ORDER BY seq",
+                          (conv_id,)):
+        parts.append(f"{m['role']}: {m['text']}")
+        if sum(len(p) for p in parts) > limit_chars:
+            break
+    return "\n".join(parts)[:limit_chars]
+
+
+def _keyword_tags(title, body, max_tags=4):
+    """Zero-dependency fallback: most frequent salient words become tags."""
+    freq = {}
+    for tok in _SLUG_RE.sub(" ", f"{title} {body}".lower()).split():
+        if len(tok) < 4 or tok in _STOPWORDS or tok.isdigit():
+            continue
+        freq[tok] = freq.get(tok, 0) + 1
+    ranked = sorted(freq.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [w for w, _ in ranked[:max_tags]]
+
+
+def _llm_tags(title, body, model, endpoint, max_tags=4, timeout=60):
+    """Ask a local Ollama model for topic tags. Returns a list, or None if unreachable."""
+    prompt = (
+        "You are tagging one conversation for a personal knowledge base.\n"
+        "Return ONLY a JSON array of "
+        f"{max_tags} or fewer short topic tags (1-3 words each, lowercase, "
+        "hyphenated, no '#'). Tag the project/idea/domain, not generic words.\n\n"
+        f"Title: {title}\n\nExcerpt:\n{body}\n\nTags:"
+    )
+    payload = json.dumps({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+    }).encode("utf-8")
+    url = endpoint.rstrip("/") + "/api/chat"
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+        return None
+    content = (data.get("message") or {}).get("content", "")
+    tags = []
+    m = re.search(r"\[.*\]", content, re.DOTALL)
+    if m:
+        try:
+            tags = [str(t) for t in json.loads(m.group(0))]
+        except ValueError:
+            tags = []
+    if not tags:  # model didn't return JSON — take non-empty lines
+        tags = [ln.strip("-*# ").strip() for ln in content.splitlines() if ln.strip()]
+    cleaned = []
+    for t in tags:
+        s = _slug(t)
+        if s and s not in cleaned:
+            cleaned.append(s)
+    return cleaned[:max_tags]
+
+
+def cmd_autotag(conn, args):
+    # pick conversations to tag
+    if args.conv:
+        rows = conn.execute("SELECT id, title FROM conversations WHERE id=?", (args.conv,)).fetchall()
+    elif args.all:
+        rows = conn.execute("SELECT id, title FROM conversations ORDER BY created_at DESC "
+                            "LIMIT ?", (args.limit,)).fetchall()
+    else:
+        # only conversations that have no auto tags yet
+        rows = conn.execute(
+            "SELECT c.id, c.title FROM conversations c WHERE c.id NOT IN "
+            "(SELECT conversation_id FROM conversation_tags WHERE source='auto') "
+            "ORDER BY c.created_at DESC LIMIT ?", (args.limit,)).fetchall()
+    if not rows:
+        print("Nothing to auto-tag. (Use --all to re-tag everything.)")
+        return
+
+    engine = args.engine
+    if engine == "auto":
+        probe = _llm_tags("probe", "hello", args.model, args.endpoint, max_tags=1, timeout=8)
+        engine = "llm" if probe is not None else "keywords"
+        if engine == "keywords":
+            print(f"No local LLM reachable at {args.endpoint} — using the built-in keyword")
+            print("tagger instead. (Start Ollama and `ollama run " + args.model + "` for smarter tags.)\n")
+        else:
+            print(f"Using your local LLM: {args.model} at {args.endpoint}\n")
+
+    tagged = 0
+    for r in rows:
+        body = _conversation_text(conn, r["id"])
+        if engine == "llm":
+            tags = _llm_tags(r["title"], body, args.model, args.endpoint, args.max_tags)
+            if tags is None:  # went away mid-run
+                tags = _keyword_tags(r["title"], body, args.max_tags)
+        else:
+            tags = _keyword_tags(r["title"], body, args.max_tags)
+        tags = [t for t in tags if t]
+        marker = "→ would tag" if args.dry_run else "→ tagged"
+        print(f"[{r['id']:>4}] {r['title'][:50]:<50} {marker}: {', '.join('#'+t for t in tags) or '(none)'}")
+        if not args.dry_run and tags:
+            # replace this conversation's previous AUTO tags; never touch manual ones
+            conn.execute("DELETE FROM conversation_tags WHERE conversation_id=? AND source='auto'",
+                         (r["id"],))
+            for t in tags:
+                _apply_tag(conn, r["id"], t, "auto")
+            tagged += 1
+    conn.commit()
+    if args.dry_run:
+        print("\nDry run — nothing saved. Re-run without --dry-run to apply.")
+    else:
+        print(f"\nAuto-tagged {tagged} conversation(s). See them with:  python3 vault.py tags")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────────────────────────────────────
 def main(argv=None):
@@ -520,6 +668,22 @@ def main(argv=None):
     s.add_argument("tag")
 
     sub.add_parser("tags", help="list all tags and counts")
+
+    s = sub.add_parser("autotag", help="let your own local LLM suggest idea/plan tags")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--conv", type=int, help="auto-tag just this conversation id")
+    g.add_argument("--all", action="store_true", help="re-tag everything (default: only untagged)")
+    s.add_argument("--limit", type=int, default=25, help="max conversations to tag this run")
+    s.add_argument("--max-tags", dest="max_tags", type=int, default=4)
+    s.add_argument("--engine", choices=["auto", "llm", "keywords"], default="auto",
+                   help="auto = use local LLM if reachable, else keywords")
+    s.add_argument("--model", default=os.environ.get("OLLAMA_MODEL", "llama3.1"),
+                   help="local model name (default: $OLLAMA_MODEL or llama3.1)")
+    s.add_argument("--endpoint", default=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
+                   help="local LLM endpoint (default: $OLLAMA_HOST or http://localhost:11434)")
+    s.add_argument("--dry-run", dest="dry_run", action="store_true",
+                   help="show suggestions without saving")
+
     sub.add_parser("accounts", help="list account provenance markers and counts")
     sub.add_parser("stats", help="overview of the vault")
 
@@ -527,7 +691,7 @@ def main(argv=None):
     conn = connect(args.db)
     dispatch = {
         "ingest": cmd_ingest, "list": cmd_list, "search": cmd_search, "show": cmd_show,
-        "accounts": cmd_accounts,
+        "accounts": cmd_accounts, "autotag": cmd_autotag,
         "tag": cmd_tag, "untag": cmd_untag, "tags": cmd_tags, "stats": cmd_stats,
     }
     dispatch[args.cmd](conn, args)
