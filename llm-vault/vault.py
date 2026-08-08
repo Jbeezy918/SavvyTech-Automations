@@ -1,0 +1,702 @@
+#!/usr/bin/env python3
+"""
+LLM Vault — your own private, local database of your AI conversations.
+
+Drop your data exports from ChatGPT, Claude, and Gemini into a folder, run one
+command, and every conversation lands in a single local SQLite file you own.
+Search it, tag it by idea/plan, and file it however you like. No accounts, no
+cloud, no dependencies — just Python's standard library.
+
+Usage:
+    python3 vault.py ingest <path>        # import an export file or a folder of them
+    python3 vault.py list [--provider P]  # list conversations
+    python3 vault.py search "keyword"     # full-text-ish search across everything
+    python3 vault.py show <conv_id>       # print a whole conversation
+    python3 vault.py tag <conv_id> <tag>  # file a conversation under an idea/plan
+    python3 vault.py untag <conv_id> <tag>
+    python3 vault.py tags                 # list all tags and counts
+    python3 vault.py autotag [--all]      # let your own local LLM suggest idea tags
+    python3 vault.py stats                # overview of what's in the vault
+
+The database lives next to this script as vault.db (override with --db PATH).
+"""
+
+import argparse
+import datetime as _dt
+import glob
+import json
+import os
+import re
+import sqlite3
+import sys
+import urllib.error
+import urllib.request
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB = os.path.join(HERE, "vault.db")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Database
+# ─────────────────────────────────────────────────────────────────────────────
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS sources (
+    id          INTEGER PRIMARY KEY,
+    provider    TEXT NOT NULL,
+    account     TEXT NOT NULL DEFAULT 'unknown',
+    filename    TEXT NOT NULL,
+    imported_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS conversations (
+    id            INTEGER PRIMARY KEY,
+    provider      TEXT NOT NULL,
+    account       TEXT NOT NULL DEFAULT 'unknown',
+    ext_id        TEXT,
+    title         TEXT,
+    created_at    TEXT,
+    updated_at    TEXT,
+    message_count INTEGER DEFAULT 0
+);
+-- Note: the unique index enforcing (provider, account, ext_id) is created in
+-- _migrate() so it also applies after the 'account' column is added to older
+-- vaults — creating it here would fail on a pre-account database.
+CREATE TABLE IF NOT EXISTS messages (
+    id              INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    seq             INTEGER NOT NULL,
+    role            TEXT,
+    text            TEXT,
+    created_at      TEXT
+);
+CREATE TABLE IF NOT EXISTS tags (
+    id   INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+CREATE TABLE IF NOT EXISTS conversation_tags (
+    conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    tag_id          INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (conversation_id, tag_id)
+);
+CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_messages_text ON messages(text);
+"""
+
+
+def connect(db_path):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.executescript(SCHEMA)
+    _migrate(conn)
+    return conn
+
+
+def _migrate(conn):
+    """Add columns that newer versions rely on to older vaults."""
+    for table in ("conversations", "sources"):
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if "account" not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN account TEXT NOT NULL DEFAULT 'unknown'")
+    # Distinguish auto-suggested tags from ones you set by hand, so re-running
+    # autotag only ever touches its own tags.
+    ct_cols = {r["name"] for r in conn.execute("PRAGMA table_info(conversation_tags)")}
+    if "source" not in ct_cols:
+        conn.execute("ALTER TABLE conversation_tags ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_identity "
+                 "ON conversations(provider, account, ext_id)")
+    conn.commit()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────────────────────────────────────
+def _iso(value):
+    """Best-effort convert a timestamp (epoch seconds or ISO string) to ISO text."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        try:
+            return _dt.datetime.utcfromtimestamp(value).isoformat()
+        except (OSError, OverflowError, ValueError):
+            return None
+    return str(value)
+
+
+def _text_from_parts(parts):
+    """Flatten a list of content parts (strings or dicts) into plain text."""
+    out = []
+    for p in parts or []:
+        if isinstance(p, str):
+            out.append(p)
+        elif isinstance(p, dict):
+            # ChatGPT multimodal / Claude content blocks
+            if "text" in p and isinstance(p["text"], str):
+                out.append(p["text"])
+            elif p.get("content_type") == "text" and isinstance(p.get("parts"), list):
+                out.append(_text_from_parts(p["parts"]))
+    return "\n".join(t for t in out if t)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parsers — each yields dicts: {ext_id, title, created_at, updated_at, messages}
+# where messages is a list of {role, text, created_at}
+# ─────────────────────────────────────────────────────────────────────────────
+def parse_chatgpt(data):
+    """OpenAI/ChatGPT 'conversations.json' — tree of message nodes per convo."""
+    for convo in data:
+        mapping = convo.get("mapping") or {}
+        nodes = []
+        for node in mapping.values():
+            msg = node.get("message")
+            if not msg:
+                continue
+            author = (msg.get("author") or {}).get("role")
+            if author not in ("user", "assistant"):
+                continue
+            content = msg.get("content") or {}
+            if content.get("content_type") == "text":
+                text = _text_from_parts(content.get("parts"))
+            else:
+                text = _text_from_parts(content.get("parts")) or ""
+            if not text.strip():
+                continue
+            nodes.append((msg.get("create_time") or 0,
+                          "user" if author == "user" else "assistant",
+                          text, _iso(msg.get("create_time"))))
+        nodes.sort(key=lambda n: n[0])
+        yield {
+            "ext_id": convo.get("conversation_id") or convo.get("id"),
+            "title": convo.get("title") or "(untitled)",
+            "created_at": _iso(convo.get("create_time")),
+            "updated_at": _iso(convo.get("update_time")),
+            "messages": [{"role": r, "text": t, "created_at": c} for _, r, t, c in nodes],
+        }
+
+
+def parse_claude(data):
+    """Anthropic/Claude 'conversations.json' — flat chat_messages per convo."""
+    for convo in data:
+        msgs = []
+        for m in convo.get("chat_messages") or []:
+            sender = m.get("sender")
+            role = "user" if sender == "human" else "assistant"
+            text = m.get("text") or _text_from_parts(m.get("content"))
+            if not (text or "").strip():
+                continue
+            msgs.append({"role": role, "text": text, "created_at": _iso(m.get("created_at"))})
+        yield {
+            "ext_id": convo.get("uuid") or convo.get("id"),
+            "title": convo.get("name") or "(untitled)",
+            "created_at": _iso(convo.get("created_at")),
+            "updated_at": _iso(convo.get("updated_at")),
+            "messages": msgs,
+        }
+
+
+def parse_gemini(data):
+    """Google Takeout 'My Activity' JSON for Gemini — best-effort (prompts only)."""
+    # Takeout groups everything into one activity stream; we treat each prompt as
+    # a one-message conversation. It's coarser than ChatGPT/Claude but still yours.
+    for i, item in enumerate(data):
+        title = item.get("title") or ""
+        # Strip the common "Prompted " / "Asked " prefixes Takeout adds.
+        for prefix in ("Prompted ", "Asked "):
+            if title.startswith(prefix):
+                title = title[len(prefix):]
+        if not title.strip():
+            continue
+        yield {
+            "ext_id": f"{item.get('time','')}-{i}",
+            "title": title[:120],
+            "created_at": _iso(item.get("time")),
+            "updated_at": _iso(item.get("time")),
+            "messages": [{"role": "user", "text": title, "created_at": _iso(item.get("time"))}],
+        }
+
+
+PARSERS = {"chatgpt": parse_chatgpt, "claude": parse_claude, "gemini": parse_gemini}
+
+
+def detect_provider(data, filename):
+    """Guess the provider from the JSON shape or the file path."""
+    fn = filename.lower()
+    if "gemini" in fn or "myactivity" in fn or "my activity" in fn:
+        return "gemini"
+    if isinstance(data, list) and data:
+        first = data[0]
+        if isinstance(first, dict):
+            if "mapping" in first:
+                return "chatgpt"
+            if "chat_messages" in first or ("uuid" in first and "name" in first):
+                return "claude"
+            if "header" in first and "title" in first:
+                return "gemini"
+    if "chatgpt" in fn or "openai" in fn:
+        return "chatgpt"
+    if "claude" in fn or "anthropic" in fn:
+        return "claude"
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Ingest
+# ─────────────────────────────────────────────────────────────────────────────
+def resolve_account(path, explicit=None):
+    """Decide which account an export belongs to (a permanent provenance marker).
+
+    Priority:
+      1. an explicit --account value
+      2. the folder directly under 'exports/' in the path
+         (recommended layout: exports/<account>/whatever.json)
+      3. 'unknown'
+    """
+    if explicit:
+        return explicit
+    parts = os.path.normpath(os.path.abspath(path)).split(os.sep)
+    lowered = [p.lower() for p in parts]
+    if "exports" in lowered:
+        i = lowered.index("exports")
+        # the segment after 'exports' — but only if it's a folder, not the file itself
+        if i + 2 < len(parts):
+            return parts[i + 1]
+    return "unknown"
+
+
+def ingest_file(conn, path, provider=None, account=None):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"  ! skipped {path}: {e}")
+        return 0, 0
+    prov = provider or detect_provider(data, path)
+    if prov not in PARSERS:
+        print(f"  ! skipped {path}: couldn't tell which LLM this is "
+              f"(try: python3 vault.py ingest {path} --provider chatgpt|claude|gemini)")
+        return 0, 0
+    acct = resolve_account(path, account)
+
+    cur = conn.cursor()
+    cur.execute("INSERT INTO sources(provider, account, filename, imported_at) VALUES (?,?,?,?)",
+                (prov, acct, os.path.basename(path), _dt.datetime.utcnow().isoformat()))
+    convos = 0
+    msgs = 0
+    for c in PARSERS[prov](data):
+        if not c["messages"]:
+            continue
+        cur.execute(
+            "INSERT INTO conversations(provider, account, ext_id, title, created_at, updated_at, message_count) "
+            "VALUES (?,?,?,?,?,?,?) "
+            "ON CONFLICT(provider, account, ext_id) DO UPDATE SET "
+            "title=excluded.title, updated_at=excluded.updated_at, "
+            "message_count=excluded.message_count",
+            (prov, acct, c["ext_id"], c["title"], c["created_at"], c["updated_at"], len(c["messages"])),
+        )
+        cur.execute("SELECT id FROM conversations WHERE provider=? AND account=? AND ext_id=?",
+                    (prov, acct, c["ext_id"]))
+        conv_id = cur.fetchone()[0]
+        # Replace messages so re-importing an updated export stays clean.
+        cur.execute("DELETE FROM messages WHERE conversation_id=?", (conv_id,))
+        for seq, m in enumerate(c["messages"]):
+            cur.execute(
+                "INSERT INTO messages(conversation_id, seq, role, text, created_at) "
+                "VALUES (?,?,?,?,?)",
+                (conv_id, seq, m["role"], m["text"], m["created_at"]),
+            )
+            msgs += 1
+        convos += 1
+    conn.commit()
+    print(f"  ✓ {os.path.basename(path)} [{prov} · {acct}]: {convos} conversations, {msgs} messages")
+    return convos, msgs
+
+
+def cmd_ingest(conn, args):
+    path = args.path
+    targets = []
+    if os.path.isdir(path):
+        for pat in ("*.json", "**/*.json"):
+            targets.extend(glob.glob(os.path.join(path, pat), recursive=True))
+        targets = sorted(set(targets))
+        if not targets:
+            print(f"No .json files found under {path}")
+            return
+    else:
+        targets = [path]
+    print(f"Ingesting {len(targets)} file(s)…")
+    tc = tm = 0
+    for t in targets:
+        c, m = ingest_file(conn, t, args.provider, args.account)
+        tc += c
+        tm += m
+    print(f"\nDone. {tc} conversations, {tm} messages now in the vault.")
+    if conn.execute("SELECT 1 FROM conversations WHERE account='unknown' LIMIT 1").fetchone():
+        print("\n  Tip: some data landed under account 'unknown'. Stamp provenance with either")
+        print("       --account joe.budds41@gmail   or the folder layout  exports/<account>/…")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Read commands
+# ─────────────────────────────────────────────────────────────────────────────
+def _filters(args, params):
+    """Build a WHERE fragment for --provider / --account (shared by list & search)."""
+    clauses = []
+    if getattr(args, "provider", None):
+        clauses.append("c.provider=?")
+        params.append(args.provider)
+    if getattr(args, "account", None):
+        clauses.append("c.account=?")
+        params.append(args.account)
+    return (" AND ".join(clauses)) if clauses else ""
+
+
+def cmd_list(conn, args):
+    params = []
+    where = _filters(args, params)
+    q = ("SELECT c.id, c.provider, c.account, c.title, c.created_at, c.message_count, "
+         "GROUP_CONCAT(t.name, ', ') AS tags "
+         "FROM conversations c "
+         "LEFT JOIN conversation_tags ct ON ct.conversation_id=c.id "
+         "LEFT JOIN tags t ON t.id=ct.tag_id ")
+    if where:
+        q += "WHERE " + where + " "
+    q += "GROUP BY c.id ORDER BY c.created_at DESC LIMIT ?"
+    params.append(args.limit)
+    rows = conn.execute(q, params).fetchall()
+    if not rows:
+        print("Vault is empty — run:  python3 vault.py ingest llm-vault/exports")
+        return
+    for r in rows:
+        tags = f"  #{r['tags']}" if r["tags"] else ""
+        date = (r["created_at"] or "")[:10]
+        print(f"[{r['id']:>4}] {r['provider']:<8} {r['account']:<20} {date}  "
+              f"{r['title'][:52]}  ({r['message_count']} msgs){tags}")
+
+
+def cmd_search(conn, args):
+    like = f"%{args.query}%"
+    params = [like, like]
+    where = _filters(args, params)
+    q = ("SELECT DISTINCT c.id, c.provider, c.account, c.title, c.created_at "
+         "FROM conversations c JOIN messages m ON m.conversation_id=c.id "
+         "WHERE (m.text LIKE ? OR c.title LIKE ?) ")
+    if where:
+        q += "AND " + where + " "
+    q += "ORDER BY c.created_at DESC LIMIT ?"
+    params.append(args.limit)
+    rows = conn.execute(q, params).fetchall()
+    if not rows:
+        print(f"No matches for '{args.query}'.")
+        return
+    print(f"{len(rows)} conversation(s) mention '{args.query}':\n")
+    for r in rows:
+        # show one matching snippet
+        m = conn.execute(
+            "SELECT text FROM messages WHERE conversation_id=? AND text LIKE ? LIMIT 1",
+            (r["id"], like),
+        ).fetchone()
+        snippet = ""
+        if m:
+            t = " ".join(m["text"].split())
+            idx = t.lower().find(args.query.lower())
+            start = max(0, idx - 40)
+            snippet = ("…" if start else "") + t[start:idx + len(args.query) + 60] + "…"
+        print(f"[{r['id']:>4}] {r['provider']:<8} {r['account']:<20} "
+              f"{(r['created_at'] or '')[:10]}  {r['title'][:48]}")
+        if snippet:
+            print(f"        {snippet}")
+
+
+def cmd_show(conn, args):
+    c = conn.execute("SELECT * FROM conversations WHERE id=?", (args.conv_id,)).fetchone()
+    if not c:
+        print(f"No conversation with id {args.conv_id}")
+        return
+    print(f"═══ [{c['id']}] {c['title']}")
+    print(f"    {c['provider']} · {c['account']} · {(c['created_at'] or '')[:10]} ═══\n")
+    for m in conn.execute("SELECT role, text FROM messages WHERE conversation_id=? ORDER BY seq",
+                          (args.conv_id,)):
+        who = "YOU" if m["role"] == "user" else "AI "
+        print(f"{who} ▸ {m['text']}\n")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tagging
+# ─────────────────────────────────────────────────────────────────────────────
+def _get_tag_id(conn, name):
+    conn.execute("INSERT OR IGNORE INTO tags(name) VALUES (?)", (name,))
+    return conn.execute("SELECT id FROM tags WHERE name=?", (name,)).fetchone()[0]
+
+
+def _apply_tag(conn, conv_id, name, source="manual"):
+    tag_id = _get_tag_id(conn, name)
+    conn.execute("INSERT OR IGNORE INTO conversation_tags(conversation_id, tag_id, source) "
+                 "VALUES (?,?,?)", (conv_id, tag_id, source))
+
+
+def cmd_tag(conn, args):
+    if not conn.execute("SELECT 1 FROM conversations WHERE id=?", (args.conv_id,)).fetchone():
+        print(f"No conversation with id {args.conv_id}")
+        return
+    _apply_tag(conn, args.conv_id, args.tag, "manual")
+    conn.commit()
+    print(f"Filed conversation {args.conv_id} under #{args.tag}")
+
+
+def cmd_untag(conn, args):
+    conn.execute(
+        "DELETE FROM conversation_tags WHERE conversation_id=? AND "
+        "tag_id=(SELECT id FROM tags WHERE name=?)",
+        (args.conv_id, args.tag),
+    )
+    conn.commit()
+    print(f"Removed #{args.tag} from conversation {args.conv_id}")
+
+
+def cmd_tags(conn, args):
+    rows = conn.execute(
+        "SELECT t.name, COUNT(ct.conversation_id) AS n FROM tags t "
+        "LEFT JOIN conversation_tags ct ON ct.tag_id=t.id "
+        "GROUP BY t.id ORDER BY n DESC, t.name"
+    ).fetchall()
+    if not rows:
+        print("No tags yet. File something:  python3 vault.py tag <conv_id> my-idea")
+        return
+    for r in rows:
+        print(f"  #{r['name']:<24} {r['n']}")
+
+
+def cmd_stats(conn, args):
+    convos = conn.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
+    msgs = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+    print(f"Vault: {convos} conversations, {msgs} messages\n")
+    print("  by provider × account:")
+    for r in conn.execute(
+        "SELECT provider, account, COUNT(*) n FROM conversations "
+        "GROUP BY provider, account ORDER BY provider, n DESC"
+    ):
+        print(f"    {r['provider']:<10} {r['account']:<24} {r['n']}")
+    span = conn.execute("SELECT MIN(created_at), MAX(created_at) FROM conversations "
+                        "WHERE created_at IS NOT NULL").fetchone()
+    if span and span[0]:
+        print(f"\n  span: {span[0][:10]} → {span[1][:10]}")
+
+
+def cmd_accounts(conn, args):
+    rows = conn.execute(
+        "SELECT account, COUNT(*) n FROM conversations GROUP BY account ORDER BY n DESC, account"
+    ).fetchall()
+    if not rows:
+        print("No data yet.")
+        return
+    print("Accounts (your permanent provenance markers):\n")
+    for r in rows:
+        print(f"  {r['account']:<28} {r['n']} conversations")
+    print("\n  Filter anything by account, e.g.:")
+    print("    python3 vault.py list   --account joe.budds41@gmail")
+    print("    python3 vault.py search \"pricing\" --account joe@yahoo.com")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Auto-tagging — powered by YOUR OWN local LLM (Ollama), with a no-setup fallback
+# ─────────────────────────────────────────────────────────────────────────────
+_SLUG_RE = re.compile(r"[^a-z0-9]+")
+_STOPWORDS = set("""
+a an the and or but if then else for to of in on at by with from into over under
+is are was were be been being do does did done have has had having i you he she it
+we they me him her them my your our their this that these those what which who whom
+how why when where can could should would will shall may might must not no yes ok
+okay just like get got make made want need know think see look use using used one
+two more most some any all both each few many much such very really thing things
+please thanks thank hello hi hey about there here as so than too also let lets im
+ive dont cant wont youre thats what's i'm it's don't
+""".split())
+
+
+def _slug(text, max_words=3):
+    words = _SLUG_RE.sub(" ", text.lower()).split()
+    words = [w for w in words if w and w not in _STOPWORDS][:max_words]
+    return "-".join(words)
+
+
+def _conversation_text(conn, conv_id, limit_chars=2000):
+    parts = []
+    for m in conn.execute("SELECT role, text FROM messages WHERE conversation_id=? ORDER BY seq",
+                          (conv_id,)):
+        parts.append(f"{m['role']}: {m['text']}")
+        if sum(len(p) for p in parts) > limit_chars:
+            break
+    return "\n".join(parts)[:limit_chars]
+
+
+def _keyword_tags(title, body, max_tags=4):
+    """Zero-dependency fallback: most frequent salient words become tags."""
+    freq = {}
+    for tok in _SLUG_RE.sub(" ", f"{title} {body}".lower()).split():
+        if len(tok) < 4 or tok in _STOPWORDS or tok.isdigit():
+            continue
+        freq[tok] = freq.get(tok, 0) + 1
+    ranked = sorted(freq.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [w for w, _ in ranked[:max_tags]]
+
+
+def _llm_tags(title, body, model, endpoint, max_tags=4, timeout=60):
+    """Ask a local Ollama model for topic tags. Returns a list, or None if unreachable."""
+    prompt = (
+        "You are tagging one conversation for a personal knowledge base.\n"
+        "Return ONLY a JSON array of "
+        f"{max_tags} or fewer short topic tags (1-3 words each, lowercase, "
+        "hyphenated, no '#'). Tag the project/idea/domain, not generic words.\n\n"
+        f"Title: {title}\n\nExcerpt:\n{body}\n\nTags:"
+    )
+    payload = json.dumps({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+    }).encode("utf-8")
+    url = endpoint.rstrip("/") + "/api/chat"
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, ValueError, OSError):
+        return None
+    content = (data.get("message") or {}).get("content", "")
+    tags = []
+    m = re.search(r"\[.*\]", content, re.DOTALL)
+    if m:
+        try:
+            tags = [str(t) for t in json.loads(m.group(0))]
+        except ValueError:
+            tags = []
+    if not tags:  # model didn't return JSON — take non-empty lines
+        tags = [ln.strip("-*# ").strip() for ln in content.splitlines() if ln.strip()]
+    cleaned = []
+    for t in tags:
+        s = _slug(t)
+        if s and s not in cleaned:
+            cleaned.append(s)
+    return cleaned[:max_tags]
+
+
+def cmd_autotag(conn, args):
+    # pick conversations to tag
+    if args.conv:
+        rows = conn.execute("SELECT id, title FROM conversations WHERE id=?", (args.conv,)).fetchall()
+    elif args.all:
+        rows = conn.execute("SELECT id, title FROM conversations ORDER BY created_at DESC "
+                            "LIMIT ?", (args.limit,)).fetchall()
+    else:
+        # only conversations that have no auto tags yet
+        rows = conn.execute(
+            "SELECT c.id, c.title FROM conversations c WHERE c.id NOT IN "
+            "(SELECT conversation_id FROM conversation_tags WHERE source='auto') "
+            "ORDER BY c.created_at DESC LIMIT ?", (args.limit,)).fetchall()
+    if not rows:
+        print("Nothing to auto-tag. (Use --all to re-tag everything.)")
+        return
+
+    engine = args.engine
+    if engine == "auto":
+        probe = _llm_tags("probe", "hello", args.model, args.endpoint, max_tags=1, timeout=8)
+        engine = "llm" if probe is not None else "keywords"
+        if engine == "keywords":
+            print(f"No local LLM reachable at {args.endpoint} — using the built-in keyword")
+            print("tagger instead. (Start Ollama and `ollama run " + args.model + "` for smarter tags.)\n")
+        else:
+            print(f"Using your local LLM: {args.model} at {args.endpoint}\n")
+
+    tagged = 0
+    for r in rows:
+        body = _conversation_text(conn, r["id"])
+        if engine == "llm":
+            tags = _llm_tags(r["title"], body, args.model, args.endpoint, args.max_tags)
+            if tags is None:  # went away mid-run
+                tags = _keyword_tags(r["title"], body, args.max_tags)
+        else:
+            tags = _keyword_tags(r["title"], body, args.max_tags)
+        tags = [t for t in tags if t]
+        marker = "→ would tag" if args.dry_run else "→ tagged"
+        print(f"[{r['id']:>4}] {r['title'][:50]:<50} {marker}: {', '.join('#'+t for t in tags) or '(none)'}")
+        if not args.dry_run and tags:
+            # replace this conversation's previous AUTO tags; never touch manual ones
+            conn.execute("DELETE FROM conversation_tags WHERE conversation_id=? AND source='auto'",
+                         (r["id"],))
+            for t in tags:
+                _apply_tag(conn, r["id"], t, "auto")
+            tagged += 1
+    conn.commit()
+    if args.dry_run:
+        print("\nDry run — nothing saved. Re-run without --dry-run to apply.")
+    else:
+        print(f"\nAuto-tagged {tagged} conversation(s). See them with:  python3 vault.py tags")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CLI
+# ─────────────────────────────────────────────────────────────────────────────
+def main(argv=None):
+    p = argparse.ArgumentParser(description="LLM Vault — your private local AI-conversation database.")
+    p.add_argument("--db", default=DEFAULT_DB, help="path to the vault database (default: vault.db)")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser("ingest", help="import an export file or a folder of them")
+    s.add_argument("path")
+    s.add_argument("--provider", choices=list(PARSERS), help="force the provider instead of auto-detecting")
+    s.add_argument("--account", help="stamp these conversations with an account marker "
+                                     "(e.g. joe.budds41@gmail); else taken from exports/<account>/…")
+
+    s = sub.add_parser("list", help="list conversations")
+    s.add_argument("--provider", choices=list(PARSERS))
+    s.add_argument("--account", help="only conversations from this account")
+    s.add_argument("--limit", type=int, default=50)
+
+    s = sub.add_parser("search", help="search across every message")
+    s.add_argument("query")
+    s.add_argument("--provider", choices=list(PARSERS))
+    s.add_argument("--account", help="only conversations from this account")
+    s.add_argument("--limit", type=int, default=25)
+
+    s = sub.add_parser("show", help="print a whole conversation")
+    s.add_argument("conv_id", type=int)
+
+    s = sub.add_parser("tag", help="file a conversation under an idea/plan")
+    s.add_argument("conv_id", type=int)
+    s.add_argument("tag")
+
+    s = sub.add_parser("untag", help="remove a tag from a conversation")
+    s.add_argument("conv_id", type=int)
+    s.add_argument("tag")
+
+    sub.add_parser("tags", help="list all tags and counts")
+
+    s = sub.add_parser("autotag", help="let your own local LLM suggest idea/plan tags")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--conv", type=int, help="auto-tag just this conversation id")
+    g.add_argument("--all", action="store_true", help="re-tag everything (default: only untagged)")
+    s.add_argument("--limit", type=int, default=25, help="max conversations to tag this run")
+    s.add_argument("--max-tags", dest="max_tags", type=int, default=4)
+    s.add_argument("--engine", choices=["auto", "llm", "keywords"], default="auto",
+                   help="auto = use local LLM if reachable, else keywords")
+    s.add_argument("--model", default=os.environ.get("OLLAMA_MODEL", "llama3.1"),
+                   help="local model name (default: $OLLAMA_MODEL or llama3.1)")
+    s.add_argument("--endpoint", default=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
+                   help="local LLM endpoint (default: $OLLAMA_HOST or http://localhost:11434)")
+    s.add_argument("--dry-run", dest="dry_run", action="store_true",
+                   help="show suggestions without saving")
+
+    sub.add_parser("accounts", help="list account provenance markers and counts")
+    sub.add_parser("stats", help="overview of the vault")
+
+    args = p.parse_args(argv)
+    conn = connect(args.db)
+    dispatch = {
+        "ingest": cmd_ingest, "list": cmd_list, "search": cmd_search, "show": cmd_show,
+        "accounts": cmd_accounts, "autotag": cmd_autotag,
+        "tag": cmd_tag, "untag": cmd_untag, "tags": cmd_tags, "stats": cmd_stats,
+    }
+    dispatch[args.cmd](conn, args)
+    conn.close()
+
+
+if __name__ == "__main__":
+    main()
