@@ -20,15 +20,31 @@ Each LLM lets you download your own data. Request it, then unzip it:
 | **Claude** | Settings → **Export data** / privacy portal (emailed to you) | `conversations.json` |
 | **Gemini** | [Google Takeout](https://takeout.google.com) → **My Activity → Gemini** | `MyActivity.json` |
 
-## 2. Drop the files in
+## 2. Drop the files in — organized by ACCOUNT
 
-Put each file in its folder (any layout works — it auto-detects the provider):
+Every conversation carries two permanent provenance markers so you never lose
+track of where it came from:
+
+- **provider** — which LLM (auto-detected from the file: ChatGPT / Claude / Gemini)
+- **account** — *which of your accounts* it came from (e.g. `joe.budds41@gmail`
+  vs `joe@yahoo.com`). This matters because you have the **same LLM under
+  several accounts**, and you want to keep (or combine) them on purpose.
+
+The easiest way to stamp the account is the **folder layout** — one folder per
+account, directly under `exports/`:
 
 ```
-llm-vault/exports/chatgpt/conversations.json
-llm-vault/exports/claude/conversations.json
-llm-vault/exports/gemini/MyActivity.json
+llm-vault/exports/
+  joe.budds41@gmail/
+    chatgpt.json
+    claude.json
+  joe@yahoo.com/
+    claude.json
+    MyActivity.json        (Gemini)
 ```
+
+The folder name becomes the account marker automatically. (Provider is still
+detected from the file contents, so you don't have to sort by LLM.)
 
 ## 3. Import everything with one command
 
@@ -37,28 +53,45 @@ cd llm-vault
 python3 vault.py ingest exports
 ```
 
-Re-run it any time you download a fresh export — it updates, it doesn't
-duplicate.
+Or stamp the account explicitly for a single file:
+
+```bash
+python3 vault.py ingest ~/Downloads/claude.json --account joe@yahoo.com
+```
+
+Re-run any time you download a fresh export — it updates, it doesn't duplicate.
+The same LLM under two accounts always stays two separate records.
 
 ---
 
 ## Using your vault
 
 ```bash
-python3 vault.py stats                 # what's in here
-python3 vault.py list                  # newest conversations (with tags)
-python3 vault.py list --provider claude
-python3 vault.py search "pricing"      # find anything you ever discussed
-python3 vault.py show 42               # read conversation #42 in full
-python3 vault.py tag 42 h-mountain     # file it under an idea/plan
-python3 vault.py tag 42 pricing        # tag with as many as you like
-python3 vault.py tags                  # all your folders/ideas + counts
+python3 vault.py stats                          # counts, broken down by provider × account
+python3 vault.py accounts                        # your account markers + counts
+python3 vault.py list                            # newest conversations (with account + tags)
+python3 vault.py list --provider claude          # only Claude
+python3 vault.py list --account joe@yahoo.com     # only your Yahoo account
+python3 vault.py search "pricing"                # find anything you ever discussed
+python3 vault.py search "pricing" --account joe.budds41@gmail   # same idea, one account
+python3 vault.py show 42                          # read conversation #42 in full
+python3 vault.py tag 42 h-mountain               # file it under an idea/plan
+python3 vault.py tag 42 pricing                  # tag with as many as you like
+python3 vault.py tags                            # all your idea/plan tags + counts
 python3 vault.py untag 42 pricing
 ```
 
-Tags are how you "file them however you want" — think of them as folders a
-conversation can live in several of at once (`gov-con`, `website`,
-`smart-home`, `pricing`, …).
+**Two ways to slice your data, and they combine:**
+
+- **account / provider** = *where it came from* (permanent, set at import) —
+  "show me everything from my Yahoo account," or "just my Gmail Claude."
+- **tags** = *what it's about* (you set these anytime) — an idea or plan a
+  conversation can live under in several places at once (`gov-con`, `website`,
+  `smart-home`, `pricing`, …).
+
+So the same idea spread across your Gmail *and* Yahoo accounts can be pulled
+together by tag, or split back apart by account — because either way it's all
+yours.
 
 ---
 

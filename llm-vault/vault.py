@@ -39,19 +39,23 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS sources (
     id          INTEGER PRIMARY KEY,
     provider    TEXT NOT NULL,
+    account     TEXT NOT NULL DEFAULT 'unknown',
     filename    TEXT NOT NULL,
     imported_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS conversations (
     id            INTEGER PRIMARY KEY,
     provider      TEXT NOT NULL,
+    account       TEXT NOT NULL DEFAULT 'unknown',
     ext_id        TEXT,
     title         TEXT,
     created_at    TEXT,
     updated_at    TEXT,
-    message_count INTEGER DEFAULT 0,
-    UNIQUE(provider, ext_id)
+    message_count INTEGER DEFAULT 0
 );
+-- Note: the unique index enforcing (provider, account, ext_id) is created in
+-- _migrate() so it also applies after the 'account' column is added to older
+-- vaults — creating it here would fail on a pre-account database.
 CREATE TABLE IF NOT EXISTS messages (
     id              INTEGER PRIMARY KEY,
     conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
@@ -79,7 +83,19 @@ def connect(db_path):
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn):
+    """Add the 'account' provenance column to vaults created before it existed."""
+    for table in ("conversations", "sources"):
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if "account" not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN account TEXT NOT NULL DEFAULT 'unknown'")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_conv_identity "
+                 "ON conversations(provider, account, ext_id)")
+    conn.commit()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -216,7 +232,28 @@ def detect_provider(data, filename):
 # ─────────────────────────────────────────────────────────────────────────────
 # Ingest
 # ─────────────────────────────────────────────────────────────────────────────
-def ingest_file(conn, path, provider=None):
+def resolve_account(path, explicit=None):
+    """Decide which account an export belongs to (a permanent provenance marker).
+
+    Priority:
+      1. an explicit --account value
+      2. the folder directly under 'exports/' in the path
+         (recommended layout: exports/<account>/whatever.json)
+      3. 'unknown'
+    """
+    if explicit:
+        return explicit
+    parts = os.path.normpath(os.path.abspath(path)).split(os.sep)
+    lowered = [p.lower() for p in parts]
+    if "exports" in lowered:
+        i = lowered.index("exports")
+        # the segment after 'exports' — but only if it's a folder, not the file itself
+        if i + 2 < len(parts):
+            return parts[i + 1]
+    return "unknown"
+
+
+def ingest_file(conn, path, provider=None, account=None):
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -228,25 +265,26 @@ def ingest_file(conn, path, provider=None):
         print(f"  ! skipped {path}: couldn't tell which LLM this is "
               f"(try: python3 vault.py ingest {path} --provider chatgpt|claude|gemini)")
         return 0, 0
+    acct = resolve_account(path, account)
 
     cur = conn.cursor()
-    cur.execute("INSERT INTO sources(provider, filename, imported_at) VALUES (?,?,?)",
-                (prov, os.path.basename(path), _dt.datetime.utcnow().isoformat()))
+    cur.execute("INSERT INTO sources(provider, account, filename, imported_at) VALUES (?,?,?,?)",
+                (prov, acct, os.path.basename(path), _dt.datetime.utcnow().isoformat()))
     convos = 0
     msgs = 0
     for c in PARSERS[prov](data):
         if not c["messages"]:
             continue
         cur.execute(
-            "INSERT INTO conversations(provider, ext_id, title, created_at, updated_at, message_count) "
-            "VALUES (?,?,?,?,?,?) "
-            "ON CONFLICT(provider, ext_id) DO UPDATE SET "
+            "INSERT INTO conversations(provider, account, ext_id, title, created_at, updated_at, message_count) "
+            "VALUES (?,?,?,?,?,?,?) "
+            "ON CONFLICT(provider, account, ext_id) DO UPDATE SET "
             "title=excluded.title, updated_at=excluded.updated_at, "
             "message_count=excluded.message_count",
-            (prov, c["ext_id"], c["title"], c["created_at"], c["updated_at"], len(c["messages"])),
+            (prov, acct, c["ext_id"], c["title"], c["created_at"], c["updated_at"], len(c["messages"])),
         )
-        cur.execute("SELECT id FROM conversations WHERE provider=? AND ext_id=?",
-                    (prov, c["ext_id"]))
+        cur.execute("SELECT id FROM conversations WHERE provider=? AND account=? AND ext_id=?",
+                    (prov, acct, c["ext_id"]))
         conv_id = cur.fetchone()[0]
         # Replace messages so re-importing an updated export stays clean.
         cur.execute("DELETE FROM messages WHERE conversation_id=?", (conv_id,))
@@ -259,7 +297,7 @@ def ingest_file(conn, path, provider=None):
             msgs += 1
         convos += 1
     conn.commit()
-    print(f"  ✓ {os.path.basename(path)} [{prov}]: {convos} conversations, {msgs} messages")
+    print(f"  ✓ {os.path.basename(path)} [{prov} · {acct}]: {convos} conversations, {msgs} messages")
     return convos, msgs
 
 
@@ -278,25 +316,40 @@ def cmd_ingest(conn, args):
     print(f"Ingesting {len(targets)} file(s)…")
     tc = tm = 0
     for t in targets:
-        c, m = ingest_file(conn, t, args.provider)
+        c, m = ingest_file(conn, t, args.provider, args.account)
         tc += c
         tm += m
     print(f"\nDone. {tc} conversations, {tm} messages now in the vault.")
+    if conn.execute("SELECT 1 FROM conversations WHERE account='unknown' LIMIT 1").fetchone():
+        print("\n  Tip: some data landed under account 'unknown'. Stamp provenance with either")
+        print("       --account joe.budds41@gmail   or the folder layout  exports/<account>/…")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Read commands
 # ─────────────────────────────────────────────────────────────────────────────
+def _filters(args, params):
+    """Build a WHERE fragment for --provider / --account (shared by list & search)."""
+    clauses = []
+    if getattr(args, "provider", None):
+        clauses.append("c.provider=?")
+        params.append(args.provider)
+    if getattr(args, "account", None):
+        clauses.append("c.account=?")
+        params.append(args.account)
+    return (" AND ".join(clauses)) if clauses else ""
+
+
 def cmd_list(conn, args):
-    q = ("SELECT c.id, c.provider, c.title, c.created_at, c.message_count, "
+    params = []
+    where = _filters(args, params)
+    q = ("SELECT c.id, c.provider, c.account, c.title, c.created_at, c.message_count, "
          "GROUP_CONCAT(t.name, ', ') AS tags "
          "FROM conversations c "
          "LEFT JOIN conversation_tags ct ON ct.conversation_id=c.id "
          "LEFT JOIN tags t ON t.id=ct.tag_id ")
-    params = []
-    if args.provider:
-        q += "WHERE c.provider=? "
-        params.append(args.provider)
+    if where:
+        q += "WHERE " + where + " "
     q += "GROUP BY c.id ORDER BY c.created_at DESC LIMIT ?"
     params.append(args.limit)
     rows = conn.execute(q, params).fetchall()
@@ -306,19 +359,22 @@ def cmd_list(conn, args):
     for r in rows:
         tags = f"  #{r['tags']}" if r["tags"] else ""
         date = (r["created_at"] or "")[:10]
-        print(f"[{r['id']:>4}] {r['provider']:<8} {date}  {r['title'][:64]}"
-              f"  ({r['message_count']} msgs){tags}")
+        print(f"[{r['id']:>4}] {r['provider']:<8} {r['account']:<20} {date}  "
+              f"{r['title'][:52]}  ({r['message_count']} msgs){tags}")
 
 
 def cmd_search(conn, args):
     like = f"%{args.query}%"
-    rows = conn.execute(
-        "SELECT DISTINCT c.id, c.provider, c.title, c.created_at "
-        "FROM conversations c JOIN messages m ON m.conversation_id=c.id "
-        "WHERE m.text LIKE ? OR c.title LIKE ? "
-        "ORDER BY c.created_at DESC LIMIT ?",
-        (like, like, args.limit),
-    ).fetchall()
+    params = [like, like]
+    where = _filters(args, params)
+    q = ("SELECT DISTINCT c.id, c.provider, c.account, c.title, c.created_at "
+         "FROM conversations c JOIN messages m ON m.conversation_id=c.id "
+         "WHERE (m.text LIKE ? OR c.title LIKE ?) ")
+    if where:
+        q += "AND " + where + " "
+    q += "ORDER BY c.created_at DESC LIMIT ?"
+    params.append(args.limit)
+    rows = conn.execute(q, params).fetchall()
     if not rows:
         print(f"No matches for '{args.query}'.")
         return
@@ -335,7 +391,8 @@ def cmd_search(conn, args):
             idx = t.lower().find(args.query.lower())
             start = max(0, idx - 40)
             snippet = ("…" if start else "") + t[start:idx + len(args.query) + 60] + "…"
-        print(f"[{r['id']:>4}] {r['provider']:<8} {(r['created_at'] or '')[:10]}  {r['title'][:60]}")
+        print(f"[{r['id']:>4}] {r['provider']:<8} {r['account']:<20} "
+              f"{(r['created_at'] or '')[:10]}  {r['title'][:48]}")
         if snippet:
             print(f"        {snippet}")
 
@@ -345,7 +402,8 @@ def cmd_show(conn, args):
     if not c:
         print(f"No conversation with id {args.conv_id}")
         return
-    print(f"═══ [{c['id']}] {c['title']} ({c['provider']}, {(c['created_at'] or '')[:10]}) ═══\n")
+    print(f"═══ [{c['id']}] {c['title']}")
+    print(f"    {c['provider']} · {c['account']} · {(c['created_at'] or '')[:10]} ═══\n")
     for m in conn.execute("SELECT role, text FROM messages WHERE conversation_id=? ORDER BY seq",
                           (args.conv_id,)):
         who = "YOU" if m["role"] == "user" else "AI "
@@ -398,12 +456,31 @@ def cmd_stats(conn, args):
     convos = conn.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
     msgs = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
     print(f"Vault: {convos} conversations, {msgs} messages\n")
-    for r in conn.execute("SELECT provider, COUNT(*) n FROM conversations GROUP BY provider ORDER BY n DESC"):
-        print(f"  {r['provider']:<10} {r['n']}")
+    print("  by provider × account:")
+    for r in conn.execute(
+        "SELECT provider, account, COUNT(*) n FROM conversations "
+        "GROUP BY provider, account ORDER BY provider, n DESC"
+    ):
+        print(f"    {r['provider']:<10} {r['account']:<24} {r['n']}")
     span = conn.execute("SELECT MIN(created_at), MAX(created_at) FROM conversations "
                         "WHERE created_at IS NOT NULL").fetchone()
     if span and span[0]:
         print(f"\n  span: {span[0][:10]} → {span[1][:10]}")
+
+
+def cmd_accounts(conn, args):
+    rows = conn.execute(
+        "SELECT account, COUNT(*) n FROM conversations GROUP BY account ORDER BY n DESC, account"
+    ).fetchall()
+    if not rows:
+        print("No data yet.")
+        return
+    print("Accounts (your permanent provenance markers):\n")
+    for r in rows:
+        print(f"  {r['account']:<28} {r['n']} conversations")
+    print("\n  Filter anything by account, e.g.:")
+    print("    python3 vault.py list   --account joe.budds41@gmail")
+    print("    python3 vault.py search \"pricing\" --account joe@yahoo.com")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -417,13 +494,18 @@ def main(argv=None):
     s = sub.add_parser("ingest", help="import an export file or a folder of them")
     s.add_argument("path")
     s.add_argument("--provider", choices=list(PARSERS), help="force the provider instead of auto-detecting")
+    s.add_argument("--account", help="stamp these conversations with an account marker "
+                                     "(e.g. joe.budds41@gmail); else taken from exports/<account>/…")
 
     s = sub.add_parser("list", help="list conversations")
     s.add_argument("--provider", choices=list(PARSERS))
+    s.add_argument("--account", help="only conversations from this account")
     s.add_argument("--limit", type=int, default=50)
 
     s = sub.add_parser("search", help="search across every message")
     s.add_argument("query")
+    s.add_argument("--provider", choices=list(PARSERS))
+    s.add_argument("--account", help="only conversations from this account")
     s.add_argument("--limit", type=int, default=25)
 
     s = sub.add_parser("show", help="print a whole conversation")
@@ -438,12 +520,14 @@ def main(argv=None):
     s.add_argument("tag")
 
     sub.add_parser("tags", help="list all tags and counts")
+    sub.add_parser("accounts", help="list account provenance markers and counts")
     sub.add_parser("stats", help="overview of the vault")
 
     args = p.parse_args(argv)
     conn = connect(args.db)
     dispatch = {
         "ingest": cmd_ingest, "list": cmd_list, "search": cmd_search, "show": cmd_show,
+        "accounts": cmd_accounts,
         "tag": cmd_tag, "untag": cmd_untag, "tags": cmd_tags, "stats": cmd_stats,
     }
     dispatch[args.cmd](conn, args)
