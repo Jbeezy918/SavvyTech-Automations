@@ -1,0 +1,6 @@
+# Your private data never leaves your machine. Never commit any of it.
+vault.db
+vault.db-journal
+exports/
+*.json
+!sample/*.json
