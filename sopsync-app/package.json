@@ -1,0 +1,72 @@
+{
+  "name": "sopsync",
+  "productName": "SOPsync",
+  "version": "0.1.0",
+  "description": "Approved process-capture, workflow-audit, training, and process-improvement desktop app for SavvyTech Automations.",
+  "author": {
+    "name": "SavvyTech Automations",
+    "email": "joe.budds41@gmail.com"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "clean": "rimraf dist release",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "build": "npm run clean && npm run build:main && npm run build:renderer",
+    "dev": "npm run build:main && concurrently \"tsc -p tsconfig.main.json -w\" \"vite\" \"npm:start:electron\"",
+    "start:electron": "wait-on dist/main/main.js && electron .",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "package:mac": "npm run build && electron-builder --mac",
+    "seed": "node --loader ts-node/esm scripts/seed.ts"
+  },
+  "dependencies": {
+    "better-sqlite3-multiple-ciphers": "^11.5.0",
+    "date-fns": "^3.6.0",
+    "keytar": "^7.9.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^22.7.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "concurrently": "^9.0.1",
+    "electron": "^32.1.2",
+    "electron-builder": "^25.0.5",
+    "eslint": "^9.11.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18.3.9",
+    "@types/react-dom": "^18.3.0",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8",
+    "vitest": "^2.1.1",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.savvytech.sopsync",
+    "productName": "SOPsync",
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "package.json"],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSScreenCaptureUsageDescription": "SOPsync captures screenshots of the selected screen only during an authorized, visibly-indicated process-capture session.",
+        "NSMicrophoneUsageDescription": "SOPsync records optional voice notes only when you explicitly start a note.",
+        "NSAppleEventsUsageDescription": "SOPsync reads the active application and window title (when authorized) to label workflow steps."
+      }
+    },
+    "dmg": { "title": "SOPsync ${version}" }
+  }
+}

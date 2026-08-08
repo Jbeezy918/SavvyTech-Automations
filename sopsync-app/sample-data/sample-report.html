@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SOPsync Audit Report</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;margin:40px;line-height:1.5}
+  h1,h2{color:#0b5cad} header{border-bottom:3px solid #0b5cad;padding-bottom:12px;margin-bottom:24px}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top}
+  th{background:#0b5cad;color:#fff}
+  .sev-critical,.sev-high{color:#b00020;font-weight:600}.sev-medium{color:#b26a00}
+  .meta{color:#555;font-size:13px}.note{background:#fff8e1;border:1px solid #ffe082;padding:10px;border-radius:6px;font-size:13px}
+</style></head><body>
+<header>
+  <h1>Process Audit Report</h1>
+  <div class="meta">SavvyTech Automations &middot; Client: Acme Corp &middot; Process: Customer Refund Process<br>
+  Session ses_sample &middot; Participant: Anonymous participant #1 &middot; Generated 2026-07-14T12:00:00.000Z</div>
+</header>
+<h2>Summary</h2>
+<ul>
+  <li><strong>Compliance score:</strong> 60 / 100</li>
+  <li><strong>Total time:</strong> 1m 45s (active 20s, idle 1m 25s)</li>
+  <li><strong>Screenshots captured:</strong> 5</li>
+  <li><strong>Findings:</strong> 2 &middot; <strong>Recommendations:</strong> 3</li>
+</ul>
+<p class="note">All savings figures are <strong>estimates</strong> derived from measured time and observed evidence. They require human validation before use in business decisions.</p>
+<h2>Timing by step</h2>
+<table><thead><tr><th>Step</th><th>Duration</th><th>Active</th><th>Idle</th><th>Flag</th></tr></thead><tbody>
+    <tr><td>Open the Billing Portal and locate the customer order</td><td>8s</td><td>8s</td>
+    <td>0s</td><td></td></tr>
+    <tr><td>Verify the refund amount matches the approved authorization</td><td>12s</td><td>12s</td>
+    <td>0s</td><td></td></tr>
+    <tr><td>Enter the refund in the Billing Portal</td><td>45s</td><td>0s</td>
+    <td>45s</td><td>⚠️ bottleneck</td></tr>
+    <tr><td>Enter the refund in the Billing Portal</td><td>40s</td><td>0s</td>
+    <td>40s</td><td></td></tr></tbody></table>
+<h2>Findings</h2>
+<table><thead><tr><th>Type</th><th>Severity</th><th>Evidence</th><th>Explanation</th><th>Confidence</th><th>Recommended action</th></tr></thead><tbody>
+    <tr>
+      <td>skipped</td><td class="sev sev-high">high</td>
+      <td>—</td>
+      <td>SOP step &quot;If the refund is over $500, decide whether a second approval is required.&quot; has no matching observed action in the captured session.</td><td>70%</td>
+      <td>Confirm whether the step was skipped or performed without a captured screen.</td>
+    </tr>
+    <tr>
+      <td>repeated</td><td class="sev sev-medium">medium</td>
+      <td>004</td>
+      <td>Observed step &quot;Enter the refund in the Billing Portal&quot; repeats an earlier action (rework or duplicate entry).</td><td>60%</td>
+      <td>Investigate whether repeated entry can be eliminated or automated.</td>
+    </tr></tbody></table>
+<h2>Recommendations</h2>
+<table><thead><tr><th>Recommendation</th><th>Problem</th><th>Current impact</th><th>Est. savings</th><th>Difficulty / Risk</th></tr></thead><tbody>
+    <tr>
+      <td>Eliminate duplicate/repeated data entry</td><td>1 repeated action(s) were observed, indicating duplicate entry or rework.</td>
+      <td>—</td>
+      <td>—</td>
+      <td>medium / low</td>
+    </tr>
+    <tr>
+      <td>Reduce time in bottleneck step: Enter the refund in the Billing Portal</td><td>Step &quot;Enter the refund in the Billing Portal&quot; takes 45s, well above the process average.</td>
+      <td>45s</td>
+      <td>14s <em>(est.)</em></td>
+      <td>medium / medium</td>
+    </tr>
+    <tr>
+      <td>Address skipped SOP steps</td><td>1 SOP step(s) had no matching observed action.</td>
+      <td>—</td>
+      <td>—</td>
+      <td>low / low</td>
+    </tr></tbody></table>
+</body></html>
