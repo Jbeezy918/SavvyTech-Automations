@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Résumé Builder | SavvyTech Automations</title>
+<meta name="description" content="Build a clean, professional, ATS-friendly résumé in minutes. Free résumé builder with live preview and one-click PDF export by SavvyTech Automations." />
+<link rel="icon" href="/favicon.svg" />
+<style>
+  :root{
+    --ink:#05070a;--panel:#0a0e14;--panel2:#0d131c;--blue:#009cff;--cyan:#35c8ff;
+    --muted:#8993a2;--line:#1b2531;--field:#0f1621;--field-line:#22303f;--text:#f7f9fc;
+    /* résumé accent (editable via UI) */
+    --accent:#0f5ca8;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- App chrome ---------- */
+  .appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+    gap:16px;padding:14px 4vw;background:#05070ad9;backdrop-filter:blur(18px);border-bottom:1px solid #ffffff14}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.02em}
+  .brand .logo{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,#008cea,#00b8ff);font-weight:900;font-size:15px;color:#fff}
+  .brand small{display:block;color:var(--cyan);letter-spacing:.22em;font-size:9px;font-weight:700;text-transform:uppercase}
+  .appbar .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{font:inherit;cursor:pointer;border:1px solid #1d425d;background:#0b1522;color:#dbe6f2;
+    padding:11px 16px;border-radius:9px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;
+    transition:all .2s}
+  .btn:hover{border-color:#1d8fd6;color:#fff;transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,#008cea,#00b8ff);border-color:transparent;color:#fff;
+    box-shadow:0 8px 24px #009cff33}
+  .btn.ghost{background:transparent;border-color:#26333f}
+  .btn.danger:hover{border-color:#c2413d;color:#ff8f8b}
+
+  /* ---------- Layout ---------- */
+  .wrap{display:grid;grid-template-columns:minmax(360px,460px) 1fr;gap:0;min-height:calc(100vh - 63px)}
+  .editor{padding:26px 30px 90px;border-right:1px solid var(--line);overflow:auto}
+  .previewPane{background:#11151b;padding:34px;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:18px}
+
+  .lead{margin:0 0 6px;font-size:22px;letter-spacing:-.02em}
+  .lead + p{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 22px}
+
+  details.group{border:1px solid var(--line);border-radius:12px;margin-bottom:14px;background:var(--panel);overflow:hidden}
+  details.group>summary{cursor:pointer;list-style:none;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;
+    font-weight:700;font-size:14px;user-select:none}
+  details.group>summary::-webkit-details-marker{display:none}
+  details.group>summary .chev{color:var(--cyan);transition:transform .2s;font-size:12px}
+  details.group[open]>summary .chev{transform:rotate(90deg)}
+  details.group>summary .num{color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-right:auto;margin-left:12px}
+  .group .body{padding:6px 18px 20px}
+
+  label.f{display:block;margin:12px 0 0}
+  label.f > span{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#93a0b0;margin-bottom:6px}
+  input.i,textarea.i,select.i{width:100%;font:inherit;font-size:14px;color:var(--text);background:var(--field);
+    border:1px solid var(--field-line);border-radius:9px;padding:11px 12px;transition:border .2s}
+  input.i:focus,textarea.i:focus,select.i:focus{outline:none;border-color:var(--blue)}
+  textarea.i{resize:vertical;min-height:78px;line-height:1.55}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hint{color:#6f7b89;font-size:11px;margin-top:5px;line-height:1.5}
+
+  .item{border:1px dashed #24313f;border-radius:11px;padding:14px 14px 16px;margin-top:14px;position:relative;background:#0b1119}
+  .item .rm{position:absolute;top:10px;right:10px;background:#141c26;border:1px solid #2a3948;color:#9fb0c0;
+    width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:15px;line-height:1;transition:all .2s}
+  .item .rm:hover{border-color:#c2413d;color:#ff8f8b}
+  .addBtn{margin-top:14px;width:100%;justify-content:center}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid #ffffff1a}
+  .swatch.sel{outline:2px solid #fff;outline-offset:2px}
+  .templates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+  .tpl{cursor:pointer;border:1px solid var(--field-line);border-radius:10px;padding:12px 8px;text-align:center;
+    font-size:12px;font-weight:600;color:#b8c4d2;background:var(--field);transition:all .2s}
+  .tpl:hover{border-color:#1d8fd6}
+  .tpl.sel{border-color:var(--blue);background:#0c1e30;color:#fff;box-shadow:0 0 0 1px var(--blue) inset}
+  .tpl b{display:block;font-size:22px;margin-bottom:4px;color:var(--cyan);font-weight:900}
+
+  .statusline{color:#6f7b89;font-size:11px;margin-top:18px;display:flex;align-items:center;gap:8px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#3ddc84;box-shadow:0 0 10px #3ddc84}
+
+  /* ---------- The résumé (print target) ---------- */
+  .pageScale{width:100%;max-width:850px}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:850px;color:var(--muted);font-size:12px}
+  #resume{background:#fff;color:#1a1f26;width:8.5in;min-height:11in;margin:0 auto;padding:0.72in 0.72in;
+    box-shadow:0 24px 70px #0009;font-family:Georgia,'Times New Roman',serif;transform-origin:top center}
+  #resume.sans{font-family:'Helvetica Neue',Arial,sans-serif}
+  #resume h1{margin:0;font-size:30px;letter-spacing:-.01em;color:#12181f}
+  #resume .role{color:var(--accent);font-weight:700;font-size:15px;margin-top:3px;letter-spacing:.02em}
+  #resume .contactbar{display:flex;flex-wrap:wrap;gap:5px 16px;margin-top:10px;font-size:12.5px;color:#3d4650}
+  #resume .contactbar span{white-space:nowrap}
+  #resume .summary{margin-top:14px;font-size:13.5px;line-height:1.6;color:#333b44}
+  #resume section{margin-top:20px}
+  #resume h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    border-bottom:2px solid var(--accent);padding-bottom:5px;margin:0 0 12px}
+  #resume .entry{margin-bottom:14px}
+  #resume .entry .top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  #resume .entry .t1{font-weight:700;font-size:14.5px;color:#1a212a}
+  #resume .entry .t2{font-style:italic;color:#4a5560;font-size:13px}
+  #resume .entry .when{font-size:12px;color:#5a6470;white-space:nowrap;font-style:italic}
+  #resume .entry ul{margin:7px 0 0;padding-left:18px}
+  #resume .entry li{font-size:13px;line-height:1.55;color:#333b44;margin-bottom:3px}
+  #resume .skills{display:flex;flex-wrap:wrap;gap:7px}
+  #resume .skills span{background:#eef3f8;border:1px solid #dbe4ee;color:#2b333d;
+    padding:5px 11px;border-radius:20px;font-size:12px}
+  #resume.plain .skills span{background:transparent;border:0;padding:0}
+  #resume.plain .skills{gap:4px}
+  #resume.plain .skills span::after{content:"•";margin-left:8px;color:#9aa5b1}
+  #resume.plain .skills span:last-child::after{content:""}
+
+  /* header variants */
+  #resume.center header{text-align:center}
+  #resume.center .contactbar{justify-content:center}
+  #resume.center h2{text-align:left}
+  #resume.band header{background:var(--accent);color:#fff;margin:-0.72in -0.72in 20px;padding:0.5in 0.72in}
+  #resume.band h1{color:#fff}
+  #resume.band .role{color:#dbeeff}
+  #resume.band .contactbar{color:#e6f2fb}
+
+  .empty{color:#aab3bd;font-style:italic}
+
+  @media (max-width:960px){
+    .wrap{grid-template-columns:1fr}
+    .editor{border-right:0;border-bottom:1px solid var(--line)}
+    #resume{width:100%;min-height:auto;padding:34px 26px}
+    #resume.band header{margin:-34px -26px 20px;padding:26px}
+    .toolbar{max-width:100%}
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff}
+    .appbar,.editor,.toolbar,.no-print{display:none !important}
+    .wrap{display:block}
+    .previewPane{padding:0;background:#fff;display:block}
+    .pageScale{max-width:none}
+    #resume{box-shadow:none;width:auto;min-height:auto;margin:0;transform:none !important;padding:0.5in 0.6in}
+    #resume.band header{margin:-0.5in -0.6in 20px;padding:0.4in 0.6in}
+    @page{size:letter;margin:0}
+  }
+</style>
+</head>
+<body>
+<header class="appbar">
+  <a class="brand" href="/">
+    <span class="logo">ST</span>
+    <span>SavvyTech Résumé Builder<small>Automate · Innovate · Elevate</small></span>
+  </a>
+  <div class="actions">
+    <button class="btn ghost" id="loadSample">Load sample</button>
+    <button class="btn ghost" id="exportJson">Save file</button>
+    <button class="btn ghost" id="importBtn">Open file</button>
+    <input type="file" id="importFile" accept="application/json" hidden />
+    <button class="btn danger ghost" id="resetBtn">Clear</button>
+    <button class="btn primary" id="printBtn">⬇ Download PDF</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ===================== EDITOR ===================== -->
+  <div class="editor">
+    <h1 class="lead">Build your résumé</h1>
+    <p>Fill in the fields — the preview on the right updates live. Everything is saved automatically in your browser. Nothing is uploaded anywhere.</p>
+
+    <!-- Design -->
+    <details class="group" open>
+      <summary><span class="chev">▶</span> Design <span class="num">Style</span></summary>
+      <div class="body">
+        <label class="f"><span>Layout template</span></label>
+        <div class="templates" id="templates">
+          <div class="tpl sel" data-tpl="classic"><b>≡</b>Classic</div>
+          <div class="tpl" data-tpl="center"><b>◇</b>Centered</div>
+          <div class="tpl" data-tpl="band"><b>▰</b>Header band</div>
+        </div>
+        <label class="f" style="margin-top:16px"><span>Accent color</span></label>
+        <div class="chips" id="swatches"></div>
+        <label class="f"><span>Typeface</span>
+          <select class="i" id="fontSel">
+            <option value="serif">Serif (Georgia) — traditional</option>
+            <option value="sans">Sans-serif (Helvetica) — modern</option>
+          </select>
+        </label>
+        <label class="f"><span>Skills style</span>
+          <select class="i" id="skillStyle">
+            <option value="chips">Pills / tags</option>
+            <option value="plain">Inline · list</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <!-- Personal -->
+    <details class="group" open>
+      <summary><span class="chev">▶</span> Contact &amp; headline <span class="num">You</span></summary>
+      <div class="body">
+        <label class="f"><span>Full name</span><input class="i" id="f_name" placeholder="Jordan Rivera" /></label>
+        <label class="f"><span>Professional title</span><input class="i" id="f_role" placeholder="Senior Automation Engineer" /></label>
+        <div class="row2">
+          <label class="f"><span>Email</span><input class="i" id="f_email" placeholder="you@email.com" /></label>
+          <label class="f"><span>Phone</span><input class="i" id="f_phone" placeholder="(918) 555-0102" /></label>
+        </div>
+        <div class="row2">
+          <label class="f"><span>Location</span><input class="i" id="f_location" placeholder="McAlester, OK" /></label>
+          <label class="f"><span>Website / LinkedIn</span><input class="i" id="f_site" placeholder="linkedin.com/in/you" /></label>
+        </div>
+        <label class="f"><span>Professional summary</span>
+          <textarea class="i" id="f_summary" placeholder="2–3 sentences highlighting your strengths, focus areas, and what you bring to a team."></textarea></label>
+      </div>
+    </details>
+
+    <!-- Experience -->
+    <details class="group" open>
+      <summary><span class="chev">▶</span> Experience <span class="num">Work</span></summary>
+      <div class="body">
+        <div id="expList"></div>
+        <button class="btn ghost addBtn" data-add="exp">+ Add experience</button>
+      </div>
+    </details>
+
+    <!-- Education -->
+    <details class="group">
+      <summary><span class="chev">▶</span> Education <span class="num">School</span></summary>
+      <div class="body">
+        <div id="eduList"></div>
+        <button class="btn ghost addBtn" data-add="edu">+ Add education</button>
+      </div>
+    </details>
+
+    <!-- Skills -->
+    <details class="group">
+      <summary><span class="chev">▶</span> Skills <span class="num">Strengths</span></summary>
+      <div class="body">
+        <label class="f"><span>Skills (comma separated)</span>
+          <textarea class="i" id="f_skills" placeholder="Home Assistant, Python, Zapier, SQL, API integration, Project management"></textarea></label>
+        <p class="hint">Separate each skill with a comma. Keep it to your strongest 8–15.</p>
+      </div>
+    </details>
+
+    <!-- Projects / Custom -->
+    <details class="group">
+      <summary><span class="chev">▶</span> Projects &amp; extras <span class="num">More</span></summary>
+      <div class="body">
+        <div id="projList"></div>
+        <button class="btn ghost addBtn" data-add="proj">+ Add project</button>
+      </div>
+    </details>
+
+    <div class="statusline"><span class="dot"></span> <span id="saveStatus">Saved to this browser</span></div>
+  </div>
+
+  <!-- ===================== PREVIEW ===================== -->
+  <div class="previewPane">
+    <div class="toolbar no-print">
+      <span>Live preview · US Letter</span>
+      <span>Zoom
+        <button class="btn ghost" id="zoomOut" style="padding:4px 10px">−</button>
+        <span id="zoomLbl">100%</span>
+        <button class="btn ghost" id="zoomIn" style="padding:4px 10px">+</button>
+      </span>
+    </div>
+    <div class="pageScale">
+      <div id="resume"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nl2list = t => (t||"").split(/\n/).map(x=>x.replace(/^[\s•\-*]+/,"").trim()).filter(Boolean);
+
+const KEY = "savvytech.resume.v1";
+const ACCENTS = ["#0f5ca8","#0a7d63","#8a2d3b","#5b3a86","#b5651d","#20303f","#0e6d8f","#a03050"];
+
+let state = {
+  tpl:"classic", accent:ACCENTS[0], font:"serif", skillStyle:"chips",
+  name:"", role:"", email:"", phone:"", location:"", site:"", summary:"", skills:"",
+  exp:[], edu:[], proj:[]
+};
+
+/* ---------- persistence ---------- */
+let saveT;
+function save(){
+  clearTimeout(saveT);
+  saveT = setTimeout(()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+    const s=$("#saveStatus"); s.textContent="Saved · "+new Date().toLocaleTimeString();
+  },250);
+}
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw) state=Object.assign(state,JSON.parse(raw)); }catch(e){}
+}
+
+/* ---------- repeatable rows ---------- */
+function uid(){ return "id"+Math.random().toString(36).slice(2,9); }
+
+const FIELDS = {
+  exp:[
+    {k:"title",label:"Job title",ph:"Automation Engineer"},
+    {k:"company",label:"Company",ph:"SavvyTech Automations"},
+    {k:"start",label:"Start",ph:"2021",half:true},
+    {k:"end",label:"End",ph:"Present",half:true},
+    {k:"bullets",label:"Highlights (one per line)",ph:"Built smart-home integrations for 40+ clients\nCut manual reporting time by 60% with automated workflows",area:true},
+  ],
+  edu:[
+    {k:"degree",label:"Degree / program",ph:"B.S. Computer Science"},
+    {k:"school",label:"School",ph:"Oklahoma State University"},
+    {k:"start",label:"Start",ph:"2016",half:true},
+    {k:"end",label:"End",ph:"2020",half:true},
+    {k:"detail",label:"Detail (optional)",ph:"Minor in Business · GPA 3.8",area:true},
+  ],
+  proj:[
+    {k:"title",label:"Project / item",ph:"Home Assistant Dashboard"},
+    {k:"detail",label:"Description",ph:"Custom energy-monitoring dashboard with automated alerts.",area:true},
+  ],
+};
+
+function rowHtml(kind,item){
+  const f = FIELDS[kind];
+  let halfOpen=false, html="";
+  f.forEach(fd=>{
+    const val = esc(item[fd.k]||"");
+    const input = fd.area
+      ? `<textarea class="i" data-k="${fd.k}" placeholder="${esc(fd.ph)}">${val}</textarea>`
+      : `<input class="i" data-k="${fd.k}" placeholder="${esc(fd.ph)}" value="${val}" />`;
+    const field = `<label class="f"><span>${fd.label}</span>${input}</label>`;
+    if(fd.half && !halfOpen){ html+=`<div class="row2">${field}`; halfOpen=true; }
+    else if(halfOpen){ html+=`${field}</div>`; halfOpen=false; }
+    else html+=field;
+  });
+  if(halfOpen) html+="</div>";
+  return `<div class="item" data-id="${item.id}"><button class="rm" title="Remove">×</button>${html}</div>`;
+}
+
+function renderList(kind){
+  const map={exp:"#expList",edu:"#eduList",proj:"#projList"};
+  const box=$(map[kind]);
+  box.innerHTML = state[kind].map(it=>rowHtml(kind,it)).join("");
+}
+
+function addRow(kind){
+  const item={id:uid()};
+  FIELDS[kind].forEach(f=>item[f.k]="");
+  state[kind].push(item);
+  renderList(kind); render(); save();
+}
+
+/* ---------- editor wiring ---------- */
+function bindSimple(){
+  ["name","role","email","phone","location","site","summary","skills"].forEach(k=>{
+    const el=$("#f_"+k); if(!el) return;
+    el.value=state[k]||"";
+    el.addEventListener("input",()=>{ state[k]=el.value; render(); save(); });
+  });
+}
+
+document.addEventListener("input",e=>{
+  const item=e.target.closest(".item"); if(!item) return;
+  const kind = item.parentElement.id.replace("List","");
+  const id=item.dataset.id, k=e.target.dataset.k;
+  const obj=state[kind].find(x=>x.id===id); if(obj){ obj[k]=e.target.value; render(); save(); }
+});
+document.addEventListener("click",e=>{
+  if(e.target.classList.contains("rm")){
+    const item=e.target.closest(".item");
+    const kind=item.parentElement.id.replace("List","");
+    state[kind]=state[kind].filter(x=>x.id!==item.dataset.id);
+    renderList(kind); render(); save();
+  }
+  const add=e.target.closest("[data-add]");
+  if(add){ addRow(add.dataset.add); }
+});
+
+/* ---------- design controls ---------- */
+function buildSwatches(){
+  const box=$("#swatches");
+  box.innerHTML=ACCENTS.map(c=>`<div class="swatch${c===state.accent?' sel':''}" data-c="${c}" style="background:${c}"></div>`).join("");
+  $$(".swatch",box).forEach(sw=>sw.addEventListener("click",()=>{
+    state.accent=sw.dataset.c; $$(".swatch",box).forEach(x=>x.classList.toggle("sel",x===sw)); render(); save();
+  }));
+}
+function buildTemplates(){
+  $$("#templates .tpl").forEach(t=>t.addEventListener("click",()=>{
+    state.tpl=t.dataset.tpl; $$("#templates .tpl").forEach(x=>x.classList.toggle("sel",x===t)); render(); save();
+  }));
+}
+function syncDesignControls(){
+  $$("#templates .tpl").forEach(t=>t.classList.toggle("sel",t.dataset.tpl===state.tpl));
+  $("#fontSel").value=state.font; $("#skillStyle").value=state.skillStyle;
+  buildSwatches();
+}
+
+/* ---------- render résumé ---------- */
+function contactBar(){
+  const bits=[];
+  if(state.email) bits.push(`<span>✉ ${esc(state.email)}</span>`);
+  if(state.phone) bits.push(`<span>☎ ${esc(state.phone)}</span>`);
+  if(state.location) bits.push(`<span>⚲ ${esc(state.location)}</span>`);
+  if(state.site) bits.push(`<span>🔗 ${esc(state.site)}</span>`);
+  return bits.length?`<div class="contactbar">${bits.join("")}</div>`:"";
+}
+function expSection(){
+  if(!state.exp.length) return "";
+  const rows=state.exp.map(x=>{
+    const when=[x.start,x.end].filter(Boolean).join(" – ");
+    const bl=nl2list(x.bullets);
+    return `<div class="entry">
+      <div class="top"><div><span class="t1">${esc(x.title)||"Role"}</span>${x.company?` · <span class="t2">${esc(x.company)}</span>`:""}</div>
+      ${when?`<span class="when">${esc(when)}</span>`:""}</div>
+      ${bl.length?`<ul>${bl.map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}</div>`;
+  }).join("");
+  return `<section><h2>Experience</h2>${rows}</section>`;
+}
+function eduSection(){
+  if(!state.edu.length) return "";
+  const rows=state.edu.map(x=>{
+    const when=[x.start,x.end].filter(Boolean).join(" – ");
+    return `<div class="entry"><div class="top">
+      <div><span class="t1">${esc(x.degree)||"Degree"}</span>${x.school?` · <span class="t2">${esc(x.school)}</span>`:""}</div>
+      ${when?`<span class="when">${esc(when)}</span>`:""}</div>
+      ${x.detail?`<ul>${nl2list(x.detail).map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}</div>`;
+  }).join("");
+  return `<section><h2>Education</h2>${rows}</section>`;
+}
+function skillsSection(){
+  const list=(state.skills||"").split(",").map(s=>s.trim()).filter(Boolean);
+  if(!list.length) return "";
+  return `<section><h2>Skills</h2><div class="skills">${list.map(s=>`<span>${esc(s)}</span>`).join("")}</div></section>`;
+}
+function projSection(){
+  if(!state.proj.length) return "";
+  const rows=state.proj.map(x=>`<div class="entry">
+    <div class="top"><span class="t1">${esc(x.title)||"Project"}</span></div>
+    ${x.detail?`<ul>${nl2list(x.detail).map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}</div>`).join("");
+  return `<section><h2>Projects</h2>${rows}</section>`;
+}
+
+function render(){
+  document.documentElement.style.setProperty("--accent",state.accent);
+  const r=$("#resume");
+  r.className = [state.tpl,state.font,state.skillStyle].join(" ");
+  const hasAny = state.name||state.role||state.summary||state.exp.length||state.edu.length||state.skills||state.proj.length;
+  const header=`<header>
+      <h1>${esc(state.name)||'<span class="empty">Your Name</span>'}</h1>
+      ${state.role?`<div class="role">${esc(state.role)}</div>`:(!state.name?`<div class="role empty">Professional Title</div>`:"")}
+      ${contactBar()}
+    </header>`;
+  const summary = state.summary?`<div class="summary">${esc(state.summary)}</div>`:
+      (!hasAny?`<div class="summary empty">Start filling in the form — your résumé appears here in real time.</div>`:"");
+  r.innerHTML = header + summary + expSection() + eduSection() + skillsSection() + projSection();
+}
+
+/* ---------- zoom ---------- */
+let zoom=1;
+function applyZoom(){ $("#resume").style.transform=`scale(${zoom})`; $("#zoomLbl").textContent=Math.round(zoom*100)+"%"; }
+$("#zoomIn").onclick=()=>{ zoom=Math.min(1.5,zoom+0.1); applyZoom(); };
+$("#zoomOut").onclick=()=>{ zoom=Math.max(0.5,zoom-0.1); applyZoom(); };
+
+/* ---------- toolbar actions ---------- */
+$("#printBtn").onclick=()=>window.print();
+$("#fontSel").onchange=e=>{ state.font=e.target.value; render(); save(); };
+$("#skillStyle").onchange=e=>{ state.skillStyle=e.target.value; render(); save(); };
+
+$("#resetBtn").onclick=()=>{
+  if(!confirm("Clear the entire résumé? This cannot be undone.")) return;
+  state={tpl:"classic",accent:ACCENTS[0],font:"serif",skillStyle:"chips",
+    name:"",role:"",email:"",phone:"",location:"",site:"",summary:"",skills:"",exp:[],edu:[],proj:[]};
+  boot(); save();
+};
+
+$("#exportJson").onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(state.name?state.name.replace(/\s+/g,"_"):"resume")+"_savvytech.json";
+  a.click(); URL.revokeObjectURL(a.href);
+};
+$("#importBtn").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ state=Object.assign(state,JSON.parse(rd.result)); boot(); save(); }
+    catch(err){ alert("That file could not be read as a saved résumé."); } };
+  rd.readAsText(file); e.target.value="";
+};
+
+/* ---------- sample ---------- */
+$("#loadSample").onclick=()=>{
+  state={
+    tpl:"band", accent:"#0f5ca8", font:"sans", skillStyle:"chips",
+    name:"Jordan Rivera", role:"Senior Automation Engineer",
+    email:"jordan.rivera@email.com", phone:"(918) 555-0102",
+    location:"McAlester, OK", site:"linkedin.com/in/jordanrivera",
+    summary:"Automation engineer with 7+ years connecting homes, businesses, and data into reliable systems. Turns tangled manual processes into clean, self-running workflows that save real time.",
+    skills:"Home Assistant, Python, Zapier, SQL, REST APIs, Node-RED, AWS, Project Management, Client Training",
+    exp:[
+      {id:uid(),title:"Senior Automation Engineer",company:"SavvyTech Automations",start:"2021",end:"Present",
+       bullets:"Designed smart-home and business automation systems for 40+ clients across Oklahoma\nReduced client reporting time by 60% by building automated data workflows\nMentored two junior engineers and standardized the deployment playbook"},
+      {id:uid(),title:"Systems Integrator",company:"Bright Grid Solutions",start:"2018",end:"2021",
+       bullets:"Integrated IoT devices, dashboards, and alerting for commercial buildings\nCut support tickets 35% by adding proactive monitoring and self-healing routines"},
+    ],
+    edu:[{id:uid(),degree:"B.S. Computer Science",school:"Oklahoma State University",start:"2014",end:"2018",detail:"Minor in Business Administration"}],
+    proj:[{id:uid(),title:"Open Energy Dashboard",detail:"Built an open-source Home Assistant energy dashboard with automated cost alerts, adopted by 500+ users."}],
+  };
+  boot(); save();
+};
+
+/* ---------- boot ---------- */
+function boot(){
+  bindSimple();
+  renderList("exp"); renderList("edu"); renderList("proj");
+  syncDesignControls();
+  render(); applyZoom();
+}
+
+load();
+buildTemplates();
+$("#fontSel").value=state.font; $("#skillStyle").value=state.skillStyle;
+boot();
+</script>
+</body>
+</html>
